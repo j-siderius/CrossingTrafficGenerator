@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossing data creator</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 250px;
+        }
+
+        button {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #canvas-container {
+            border: 1px solid #ccc;
+        }
+
+        #output {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        #status {
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="controls">
+        <input type="file" id="imageUpload" accept="image/*">
+        <div>Mode: <span id="mode"></span></div>
+        <br>
+        <button onclick="mode = 'node: input'">Add input node</button>
+        <button onclick="mode = 'node: output'">Add output node</button>
+        <br>
+        <button onclick="mode = 'sign: stop'">Add stop sign</button>
+        <button onclick="mode = 'sign: yield'">Add yield sign</button>
+        <button onclick="mode = 'sign: priority'">Add priority sign</button>
+        <!-- <br>
+        <button onclick="mode = 'line: haaientanden'">Add haaientanden</button>
+        <button onclick="mode = 'line: zebra'">Add zebra</button>
+        <button onclick="mode = 'line: stop'">Add stop line</button> -->
+        <br>
+        <button onclick="mode = 'relation'">Add relation</button>
+        <button onclick="mode = 'none'">Select none <br>(reset)</button>
+        <br>
+        <button onclick="mode = 'move'">Move asset <br>(click to select, then click where to move)</button>
+        <br>
+        <button onclick="editJSON()" id="editBtn">Edit JSON</button>
+        <button onclick="navigator.clipboard.writeText(JSON.stringify(assets, null, 2))">Copy JSON to clipboard</button>
+    </div>
+    <div id="canvas"></div>
+    <!-- <div id="output"></div> -->
+    <div style="display:flex; height:100vh;">
+        <textarea name="output" id="output" cols="100" disabled></textarea>
+    </div>
+
+    <script>
+        let img = null;
+        let mode = 'none';
+        let moveAsset = null;
+        let startNode = null;
+        let intermediateNodes = [];
+        let editing = false;
+
+        let assets = { nodes: [], signs: [], /*lines: [],*/ relations: [] };
+        let nextId = { node: 0, sign: 0, /*line: 0,*/ relation: 0 };
+
+        function preload() {
+            img = loadImage('./tcross-2.png');
+        }
+
+        function setup() {
+            let canvas = createCanvas(1000, 1000);
+            canvas.parent('canvas');
+        }
+
+        function draw() {
+            background(220);
+            if (img) {
+                image(img, 0, 0, width, height);
+            }
+            document.getElementById('mode').innerHTML = mode;
+            // document.getElementById('output').innerHTML = JSON.stringify(assets, null, 2);
+            document.getElementById('output').value = JSON.stringify(assets, null, 2);
+
+            assets.nodes.forEach(node => {
+                if (node.type == 'input') fill(0, 255, 0);
+                else if (node.type == 'output') fill(0, 0, 255);
+                else fill(0);
+                circle(node.x, node.y, 20, 20);
+                fill(0);
+            });
+
+            assets.signs.forEach(sign => {
+                if (sign.type == 'stop') fill(255, 0, 0);
+                else if (sign.type == 'yield') fill(255, 255, 0);
+                else if (sign.type == 'priority') fill(150, 0, 150);
+                else fill(0);
+                circle(sign.x, sign.y, 20, 20);
+                fill(0);
+            });
+
+            assets.relations.forEach(relation => {
+                stroke(255, 0, 0);
+                line(relation.startNode.x, relation.startNode.y, relation.intermediateNodes[0].x, relation.intermediateNodes[0].y);
+                line(relation.intermediateNodes[relation.intermediateNodes.length - 1].x, relation.intermediateNodes[relation.intermediateNodes.length - 1].y, relation.tempNode.x, relation.tempNode.y);
+                beginShape();
+                relation.intermediateNodes.forEach(intermediateNode => {
+                    fill(255, 0, 0);
+                    circle(intermediateNode.x, intermediateNode.y, 10, 10); noFill();
+                    vertex(intermediateNode.x, intermediateNode.y);
+                })
+                endShape();
+                stroke(0);
+            });
+        }
+
+        function mouseClicked() {
+            if (!img) return;
+
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+
+            console.log(mode, mouseX, mouseY);
+
+            if (mode == 'node: input') {
+                assets.nodes.push({ id: nextId.node, type: 'input', x: mouseX, y: mouseY });
+                nextId.node++;
+            } else if (mode == 'node: output') {
+                assets.nodes.push({ id: nextId.node, type: 'output', x: mouseX, y: mouseY });
+                nextId.node++;
+            } else if (mode == 'sign: stop') {
+                assets.signs.push({ id: nextId.sign, type: 'stop', x: mouseX, y: mouseY });
+                nextId.sign++;
+            } else if (mode == 'sign: yield') {
+                assets.signs.push({ id: nextId.sign, type: 'yield', x: mouseX, y: mouseY });
+                nextId.sign++;
+            } else if (mode == 'sign: priority') {
+                assets.signs.push({ id: nextId.sign, type: 'priority', x: mouseX, y: mouseY });
+                nextId.sign++;
+            } else if (mode == 'move') {
+                if (!moveAsset) {
+                    moveAsset = findClosestAsset(mouseX, mouseY, 20);
+                } else {
+                    moveAsset.x = mouseX;
+                    moveAsset.y = mouseY;
+                    moveAsset = null;
+                }
+            } else if (mode == 'relation') {
+                if (!startNode) {
+                    const tempNode = findClosestAsset(mouseX, mouseY, 20);
+                    if (tempNode.type == 'input') {
+                        startNode = tempNode;
+                        console.log(startNode);
+                    }
+                } else {
+                    const tempNode = findClosestAsset(mouseX, mouseY, 20);
+                    if (tempNode && tempNode.type == 'output') {
+                        console.log(startNode, intermediateNodes, tempNode);
+                        assets.relations.push({ id: nextId.relation, startNode, intermediateNodes, tempNode });
+                        startNode = null;
+                        intermediateNodes = [];
+                        nextId.relation++;
+                    } else {
+                        intermediateNodes.push({ id: intermediateNodes.length, x: mouseX, y: mouseY });
+                    }
+                }
+            }
+        }
+
+        function findClosestAsset(x, y, maxDist = Infinity) {
+            let closest = null;
+            let minDist = Infinity;
+
+            assets.nodes.forEach(node => {
+                const d = dist(x, y, node.x, node.y);
+                if (d < minDist && d < maxDist) {
+                    minDist = d;
+                    closest = node;
+                }
+            });
+            assets.signs.forEach(sign => {
+                const d = dist(x, y, signs.x, signs.y);
+                if (d < minDist && d < maxDist) {
+                    minDist = d;
+                    closest = signs;
+                }
+            });
+            return closest;
+        }
+
+        function editJSON() {
+            if (!editing) {
+                editing = true;
+                document.getElementById('editBtn').innerHTML = "Stop editing";
+                document.getElementById('output').disabled = false;
+                noLoop();
+            } else {
+                editing = false;
+                document.getElementById('editBtn').innerHTML = "Edit";
+                document.getElementById('output').disabled = true;
+                assets = JSON.parse(document.getElementById('output').value);
+                loop();
+            }
+        }
+
+        document.getElementById('imageUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    loadImage(event.target.result, (loadedImg) => {
+                        img = loadedImg;
+                        resizeCanvas(img.width, img.height);
+                        redraw();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

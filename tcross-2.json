@@ -1,0 +1,193 @@
+{
+    "question": {
+        "sentence": "Who goes first?",
+        "correctAnswer": "1. pedestrian, 2. car, 3. bicycle",
+        "answers": [
+            "1. car, 2. pedestrian, 3. bicycle",
+            "1. bicycle, 2. car, 3. pedestrian"
+        ]
+    },
+    "vehicles": [
+        {
+            "id": 0,
+            "type": "car",
+            "testVehicle": true,
+            "path": 0,
+            "x": 565,
+            "y": 455,
+            "angle": 342,
+            "color": [
+                255,
+                100,
+                0
+            ]
+        },
+        {
+            "id": 1,
+            "type": "bicycle",
+            "path": 1,
+            "x": 440,
+            "y": 425,
+            "angle": 250,
+            "color": [
+                255,
+                255,
+                255
+            ]
+        },
+        {
+            "id": 0,
+            "type": "pedestrian",
+            "path": 2,
+            "x": 545,
+            "y": 565,
+            "angle": 165,
+            "color": [
+                255,
+                255,
+                255
+            ]
+        }
+    ],
+    "nodes": [
+        {
+            "id": 0,
+            "type": "input",
+            "x": 463,
+            "y": 371
+        },
+        {
+            "id": 1,
+            "type": "input",
+            "x": 348,
+            "y": 341
+        },
+        {
+            "id": 2,
+            "type": "input",
+            "x": 423,
+            "y": 475
+        },
+        {
+            "id": 3,
+            "type": "output",
+            "x": 468,
+            "y": 393
+        },
+        {
+            "id": 4,
+            "type": "output",
+            "x": 370,
+            "y": 334
+        },
+        {
+            "id": 5,
+            "type": "output",
+            "x": 399,
+            "y": 482
+        }
+    ],
+    "paths": [
+        {
+            "id": 0,
+            "startNode": {
+                "id": 0,
+                "type": "input",
+                "x": 571,
+                "y": 461
+            },
+            "intermediateNodes": [
+                {
+                    "id": 0,
+                    "x": 540,
+                    "y": 472
+                },
+                {
+                    "id": 1,
+                    "x": 506,
+                    "y": 494
+                },
+                {
+                    "id": 2,
+                    "x": 482,
+                    "y": 530
+                },
+                {
+                    "id": 3,
+                    "x": 487,
+                    "y": 557
+                }
+            ],
+            "endNode": {
+                "id": 3,
+                "type": "output",
+                "x": 504,
+                "y": 602
+            }
+        },
+        {
+            "id": 1,
+            "startNode": {
+                "id": 0,
+                "type": "input",
+                "x": 436,
+                "y": 425
+            },
+            "intermediateNodes": [
+                {
+                    "id": 0,
+                    "x": 454,
+                    "y": 470
+                },
+                {
+                    "id": 1,
+                    "x": 474,
+                    "y": 499
+                },
+                {
+                    "id": 2,
+                    "x": 511,
+                    "y": 514
+                },
+                {
+                    "id": 3,
+                    "x": 548,
+                    "y": 507
+                }
+            ],
+            "endNode": {
+                "id": 1,
+                "type": "output",
+                "x": 581,
+                "y": 494
+            }
+        },
+        {
+            "id": 2,
+            "startNode": {
+                "id": 2,
+                "type": "input",
+                "x": 548,
+                "y": 567
+            },
+            "intermediateNodes": [
+                {
+                    "id": 0,
+                    "x": 517,
+                    "y": 570
+                },
+                {
+                    "id": 1,
+                    "x": 493,
+                    "y": 576
+                }
+            ],
+            "endNode": {
+                "id": 4,
+                "type": "output",
+                "x": 459,
+                "y": 592
+            }
+        }
+    ]
+}

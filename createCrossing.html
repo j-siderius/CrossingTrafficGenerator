@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create crossing data</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    #controls { 
+      display: flex; 
+      flex-direction: column;
+      gap: 10px;
+      width: 250px;
+    }
+    button {
+      padding: 10px;
+      cursor: pointer;
+    }
+    #canvas-container {
+      border: 1px solid #ccc;
+    }
+    #output {
+      flex: 1;
+      background: #f5f5f5;
+      padding: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    #status {
+      padding: 10px;
+      background: #e3f2fd;
+      border-radius: 4px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <input type="file" id="imageUpload" accept="image/*">
+    <button onclick="addNode('entry')">Add Entry Node</button>
+    <button onclick="addNode('exit')">Add Exit Node</button>
+    <button onclick="addSign()">Add Sign</button>
+    <button onclick="addLine()">Add Line</button>
+    <button onclick="addRelation()">Add Relation</button>
+    <button onclick="removeRelation()">Remove Relation</button>
+    <button onclick="removeAsset()">Remove Asset</button>
+    <button onclick="toggleMoveMode()">Move Node</button>
+    <button onclick="copyJSON()">Copy JSON</button>
+    <div id="status">Upload an image to start</div>
+  </div>
+  <div id="canvas-container"></div>
+  <div id="output">{}</div>
+
+  <script>
+    let img = null;
+    let assets = { nodes: [], signs: [], lines: [], relations: [] };
+    let mode = null;
+    let relationPoints = [];
+    let tempData = null;
+    let lineStartPoint = null;
+    let draggedNode = null;
+    let nextId = { node: 1, sign: 1, line: 1, relation: 1 };
+
+    function setup() {
+      let canvas = createCanvas(800, 600);
+      canvas.parent('canvas-container');
+      noLoop();
+    }
+
+    function draw() {
+      background(220);
+      if (img) {
+        image(img, 0, 0, width, height);
+      }
+      
+      // Draw relations
+      assets.relations.forEach(rel => {
+        stroke(0, 0, 255);
+        strokeWeight(2);
+        noFill();
+        beginShape();
+        rel.points.forEach(p => vertex(p.x, p.y));
+        endShape();
+      });
+      
+      // Draw nodes
+      assets.nodes.forEach(node => {
+        fill(node.type === 'entry' ? 0 : 255, 255, 0);
+        stroke(0);
+        strokeWeight(2);
+        ellipse(node.x, node.y, 20, 20);
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        text(node.id, node.x, node.y);
+      });
+      
+      // Draw signs
+      assets.signs.forEach(sign => {
+        fill(0, 255, 0);
+        stroke(0);
+        strokeWeight(2);
+        rect(sign.x - 10, sign.y - 10, 20, 20);
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        text(sign.id, sign.x, sign.y);
+      });
+      
+      // Draw lines
+      assets.lines.forEach(line => {
+        stroke(255, 0, 0);
+        strokeWeight(3);
+        line(line.x1, line.y1, line.x2, line.y2);
+        fill(0);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        const midX = (line.x1 + line.x2) / 2;
+        const midY = (line.y1 + line.y2) / 2;
+        text(line.id, midX, midY - 10);
+      });
+      
+      // Draw temp relation points
+      if (mode === 'addRelation' && relationPoints.length > 0) {
+        stroke(255, 0, 0);
+        strokeWeight(2);
+        noFill();
+        beginShape();
+        relationPoints.forEach(p => vertex(p.x, p.y));
+        endShape();
+        
+        relationPoints.forEach(p => {
+          fill(255, 0, 0);
+          ellipse(p.x, p.y, 8, 8);
+        });
+      }
+    }
+
+    document.getElementById('imageUpload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          loadImage(event.target.result, (loadedImg) => {
+            img = loadedImg;
+            resizeCanvas(img.width, img.height);
+            redraw();
+            setStatus('Image loaded. Select an action.');
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function mousePressed() {
+      if (!img) return;
+      
+      if (mode === 'moveNode') {
+        const node = findClosestNodeObject(mouseX, mouseY, 20);
+        if (node) {
+          draggedNode = node;
+          setStatus('Dragging node... Release to place');
+        }
+        return false;
+      }
+      
+      if (mode === 'addNode') {
+        assets.nodes.push({ id: `N${nextId.node++}`, type: tempData, x: mouseX, y: mouseY });
+        mode = null;
+        updateOutput();
+        setStatus('Node added');
+        redraw();
+      } else if (mode === 'addSign') {
+        assets.signs.push({ id: `S${nextId.sign++}`, type: tempData, x: mouseX, y: mouseY });
+        mode = null;
+        updateOutput();
+        setStatus('Sign added');
+        redraw();
+      } else if (mode === 'addLine') {
+        if (!lineStartPoint) {
+          lineStartPoint = { x: mouseX, y: mouseY };
+          setStatus('Line start set. Click to set end point.');
+        } else {
+          assets.lines.push({ 
+            id: `L${nextId.line++}`, 
+            type: tempData, 
+            x1: lineStartPoint.x, 
+            y1: lineStartPoint.y, 
+            x2: mouseX, 
+            y2: mouseY 
+          });
+          lineStartPoint = null;
+          mode = null;
+          updateOutput();
+          setStatus('Line added');
+        }
+        redraw();
+      } else if (mode === 'addRelation') {
+        if (relationPoints.length === 0) {
+          // First click - must be on a node
+          const node = findClosestNodeObject(mouseX, mouseY, 20);
+          if (node) {
+            relationPoints.push({ x: node.x, y: node.y, nodeId: node.id });
+            setStatus('First node selected. Click intermediate points, then click final node. Right-click to finish.');
+          } else {
+            setStatus('Please click on a node to start the relation');
+          }
+        } else {
+          // // Check if clicking on a node for the final point
+          // const node = findClosestNodeObject(mouseX, mouseY, 20);
+          // if (node && relationPoints.length > 0) {
+          //   relationPoints.push({ x: node.x, y: node.y, nodeId: node.id });
+          //   setStatus('Final node selected. Right-click to finish or continue adding intermediate points.');
+          // } else {
+          //   // Intermediate point
+          //   relationPoints.push({ x: mouseX, y: mouseY });
+          //   setStatus(`Intermediate point ${relationPoints.length} added. Click final node or right-click to finish.`);
+          // }
+
+          // Check if clicking on a node for the final point
+          const node = findClosestNodeObject(mouseX, mouseY, 20);
+          if (node && relationPoints.length > 0) {
+            relationPoints.push({ x: node.x, y: node.y, nodeId: node.id });
+            // Check if we have enough points to create a valid relation
+            if (relationPoints.length >= 2) {
+              // Create the new relation
+              const relation = {
+                type: 'Crossing',
+                points: [...relationPoints],
+              };
+
+              // Add the new relation to the JSON data
+              jsonData.relations.push(relation);
+
+              // Reset the relation points array for the next relation
+              relationPoints = [];
+            } else {
+              setStatus('Not enough points selected. Must select at least 2 points to create a crossing.');
+            }
+          } else {
+            // Intermediate point
+            relationPoints.push({ x: mouseX, y: mouseY });
+            setStatus(`Intermediate point ${relationPoints.length} added. Click final node or right-click to finish.`);
+          }
+        }
+        redraw();
+        return false;
+      } else if (mode === 'removeRelation') {
+        const rel = findRelation(mouseX, mouseY);
+        if (rel && confirm('Delete this relation?')) {
+          assets.relations = assets.relations.filter(r => r !== rel);
+          updateOutput();
+          setStatus('Relation removed');
+        }
+        mode = null;
+        redraw();
+      } else if (mode === 'removeAsset') {
+        const asset = findAsset(mouseX, mouseY);
+        if (asset && confirm(`Delete this ${asset.type}?`)) {
+          assets[asset.collection] = assets[asset.collection].filter(a => a !== asset.item);
+          updateOutput();
+          setStatus('Asset removed');
+        }
+        mode = null;
+        redraw();
+      }
+    }
+
+    function mouseDragged() {
+      if (mode === 'moveNode' && draggedNode) {
+        draggedNode.x = mouseX;
+        draggedNode.y = mouseY;
+        redraw();
+        return false;
+      }
+    }
+
+    function mouseReleased() {
+      if (mode === 'moveNode' && draggedNode) {
+        draggedNode.x = mouseX;
+        draggedNode.y = mouseY;
+        
+        // Update all relations that reference this node
+        assets.relations.forEach(rel => {
+          if (rel.from === draggedNode.id) {
+            rel.points[0] = { x: draggedNode.x, y: draggedNode.y };
+          }
+          if (rel.to === draggedNode.id) {
+            rel.points[rel.points.length - 1] = { x: draggedNode.x, y: draggedNode.y };
+          }
+        });
+        
+        draggedNode = null;
+        updateOutput();
+        setStatus('Node moved. Click another node to move it.');
+        redraw();
+        return false;
+      }
+    }
+
+    function mouseClicked(event) {
+      if (event.button === 2 && mode === 'addRelation' && relationPoints.length >= 2) {
+        // Verify first and last points are nodes
+        const firstPoint = relationPoints[0];
+        const lastPoint = relationPoints[relationPoints.length - 1];
+        
+        if (!firstPoint.nodeId || !lastPoint.nodeId) {
+          alert('Relations must start and end on nodes');
+          return false;
+        }
+        
+        assets.relations.push({
+          id: `R${nextId.relation++}`,
+          from: firstPoint.nodeId,
+          to: lastPoint.nodeId,
+          points: relationPoints.map(p => ({ x: p.x, y: p.y }))
+        });
+        relationPoints = [];
+        mode = null;
+        updateOutput();
+        setStatus('Relation added');
+        redraw();
+        return false;
+      }
+    }
+
+    function addNode(type) {
+      if (!img) return alert('Upload an image first');
+      tempData = type;
+      mode = 'addNode';
+      setStatus(`Click on the image to place the ${type} node`);
+    }
+
+    function addSign() {
+      if (!img) return alert('Upload an image first');
+      const type = prompt('Sign type:');
+      if (type) {
+        tempData = type;
+        mode = 'addSign';
+        setStatus('Click on the image to place the sign');
+      }
+    }
+
+    function addLine() {
+      if (!img) return alert('Upload an image first');
+      const type = prompt('Line type:');
+      if (type) {
+        tempData = type;
+        lineStartPoint = null;
+        mode = 'addLine';
+        setStatus('Click on the image to set line start point');
+      }
+    }
+
+    function addRelation() {
+      if (!img) return alert('Upload an image first');
+      mode = 'addRelation';
+      relationPoints = [];
+      setStatus('Click to add relation points. Right-click to finish.');
+    }
+
+    function removeRelation() {
+      if (!img) return alert('Upload an image first');
+      mode = 'removeRelation';
+      setStatus('Click on a relation to remove it');
+    }
+
+    function removeAsset() {
+      if (!img) return alert('Upload an image first');
+      mode = 'removeAsset';
+      setStatus('Click on an asset to remove it');
+    }
+
+    function findRelation(x, y) {
+      for (let rel of assets.relations) {
+        for (let i = 0; i < rel.points.length - 1; i++) {
+          const d = distToSegment(x, y, rel.points[i], rel.points[i + 1]);
+          if (d < 10) return rel;
+        }
+      }
+      return null;
+    }
+
+    function findAsset(x, y) {
+      for (let node of assets.nodes) {
+        if (dist(x, y, node.x, node.y) < 10) return { type: 'node', collection: 'nodes', item: node };
+      }
+      for (let sign of assets.signs) {
+        if (dist(x, y, sign.x, sign.y) < 10) return { type: 'sign', collection: 'signs', item: sign };
+      }
+      for (let line of assets.lines) {
+        const midX = (line.x1 + line.x2) / 2;
+        const midY = (line.y1 + line.y2) / 2;
+        if (dist(x, y, midX, midY) < 15) return { type: 'line', collection: 'lines', item: line };
+      }
+      return null;
+    }
+
+    function findClosestNode(x, y) {
+      let closest = null;
+      let minDist = Infinity;
+      assets.nodes.forEach(node => {
+        const d = dist(x, y, node.x, node.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = node.id;
+        }
+      });
+      return closest;
+    }
+
+    function findClosestNodeObject(x, y, maxDist = Infinity) {
+      let closest = null;
+      let minDist = Infinity;
+      assets.nodes.forEach(node => {
+        const d = dist(x, y, node.x, node.y);
+        if (d < minDist && d < maxDist) {
+          minDist = d;
+          closest = node;
+        }
+      });
+      return closest;
+    }
+
+    function distToSegment(px, py, p1, p2) {
+      const A = px - p1.x;
+      const B = py - p1.y;
+      const C = p2.x - p1.x;
+      const D = p2.y - p1.y;
+      const dot = A * C + B * D;
+      const len_sq = C * C + D * D;
+      let param = -1;
+      if (len_sq != 0) param = dot / len_sq;
+      let xx, yy;
+      if (param < 0) {
+        xx = p1.x;
+        yy = p1.y;
+      } else if (param > 1) {
+        xx = p2.x;
+        yy = p2.y;
+      } else {
+        xx = p1.x + param * C;
+        yy = p1.y + param * D;
+      }
+      const dx = px - xx;
+      const dy = py - yy;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function updateOutput() {
+      document.getElementById('output').textContent = JSON.stringify(assets, null, 2);
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function copyJSON() {
+      const jsonText = JSON.stringify(assets, null, 2);
+      navigator.clipboard.writeText(jsonText).then(() => {
+        setStatus('JSON copied to clipboard!');
+        setTimeout(() => setStatus('Ready'), 2000);
+      }).catch(() => {
+        setStatus('Failed to copy JSON');
+      });
+    }
+
+    function toggleMoveMode() {
+      if (!img) return alert('Upload an image first');
+      if (mode === 'moveNode') {
+        mode = null;
+        draggedNode = null;
+        setStatus('Move mode disabled');
+      } else {
+        mode = 'moveNode';
+        setStatus('Move mode: Click and drag a node to move it');
+      }
+    }
+
+    document.addEventListener('contextmenu', (e) => {
+      if (mode === 'addRelation' && e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+      }
+    });
+
+    updateOutput();
+  </script>
+</body>
+</html>

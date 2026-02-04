@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossing maker</title>
+    <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+</head>
+
+<body>
+    <div id="canvas"></div>
+
+    <script>
+        let img = null;
+        let data = null;
+
+        function preload() {
+            // img = loadImage('./tcross-2.png');
+
+            // fetch('./tcross-2.json')
+            //     .then((response) => response.json())
+            //     .then((json) => {
+            //         data = json;
+            //         // console.log(json);
+            //     });
+        }
+
+        function setup() {
+            let canvas = createCanvas(1000, 1000);
+            canvas.parent('canvas');
+            
+            
+        }
+
+        function draw() {
+            // background(220);
+            // image(img, 0, 0, width, height);
+
+            // // Draw all vehicle
+            // data.vehicles.forEach(vehicle => {
+            //     push();
+            //     translate(vehicle.x, vehicle.y);
+            //     rotate(vehicle.angle);
+
+            //     if (vehicle.type == "car") {
+            //         fill(vehicle.color);
+            //         rect(0, 0, 38, 22);
+            //         fill(255, 255, 0);
+            //         circle(0, 3, 6, 6);
+            //         circle(0, 22 - 3, 6, 6);
+            //         fill(255, 0, 0);
+            //         circle(38, 2, 4, 4);
+            //         circle(38, 22 - 2, 4, 4);
+            //         fill(0, 0, 100);
+            //         rect(10, 2, 5, 18);
+            //         rect(30, 4, 5, 14);
+            //     } else if (vehicle.type == "bicycle") {
+            //         fill(0);
+            //         rect(-4, -1, 8, 4);
+            //         rect(13, -1, 8, 4);
+            //         rect(0, 0, 15, 2);
+            //         rect(2, -5, 2, 12);
+            //         fill(vehicle.color);
+            //         ellipse(9, 1, 6, 16);
+            //         circle(9, 1, 8, 8);
+            //     } else if (vehicle.type == "pedestrian") {
+            //         fill(vehicle.color);
+            //         ellipse(0, 0, 6, 16);
+            //         circle(0, 0, 8, 8);
+            //         fill(0);
+            //         rect(5, -1, 2, 2);
+            //     } else {
+            //         console.error(`Unknown vehicle.type: ${vehicle.type}`);
+            //     }
+            //     pop();
+
+            //     if (vehicle.testVehicle) console.log(`Vehicle ${vehicle.id} is the test vehicle.`);
+
+            //     // Draw movement lines
+            //     fill(vehicle.color)
+            //     let points = []
+            //     points.push({ "x": vehicle.x, "y": vehicle.y})
+            //     points.push(...data.paths[vehicle.path].intermediateNodes)
+            //     points.push(data.paths[vehicle.path].endNode)
+
+            //     beginShape();
+            //     points.forEach(point => {
+            //         noFill();
+            //         vertex(point.x, point.y);
+            //     })
+            //     endShape();
+
+            //     console.log(points);
+            // });
+        }
+    </script>
+
+</body>
+
+</html>

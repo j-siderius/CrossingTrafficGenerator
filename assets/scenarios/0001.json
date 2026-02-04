@@ -1,0 +1,68 @@
+{
+    "scenario_name": "4weg_voetgangeroversteekplaats_autofietservoetganger",
+    "background": "kruispunt_4weg.png",
+    "actors": [
+        {
+            "id": 0,
+            "type": "car",
+            "x": 550,
+            "y": 650,
+            "angle": 0,
+            "desitination": {
+                "x": 550,
+                "y": 250
+            }
+        },
+        {
+            "id": 1,
+            "type": "bicycle",
+            "x": 450,
+            "y": 250,
+            "angle": 180,
+            "desitination": {
+                "x": 650,
+                "y": 550
+            }
+        },
+        {
+            "id": 2,
+            "type": "pedestrian",
+            "x": 625,
+            "y": 370,
+            "angle": 270,
+            "desitination": {
+                "x": 375,
+                "y": 370
+            }
+        }
+    ],
+    "interactions": [
+        {
+            "id": 0,
+            "actor_pair": [
+                0,
+                1
+            ],
+            "winner": 0,
+            "reason": "Rechtdoor op zelfde weg"
+        },
+        {
+            "id": 1,
+            "actor_pair": [
+                0,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        },
+        {
+            "id": 2,
+            "actor_pair": [
+                1,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        }
+    ]
+}

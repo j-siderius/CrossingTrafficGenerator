@@ -73,7 +73,7 @@
     </div>
     <div id="canvas"></div>
     <div style="display:flex; height:100vh;" id="actors">
-        <div id="table-container"></div>
+        <div id="table-container" onchange="changeInteractionTable()"></div>
     </div>
 
     <script>
@@ -89,6 +89,10 @@
             "actors": [],
             "interactions": []
         };
+
+        function changeInteractionTable() {
+            extractActorPairingData();
+        }
 
         function changeActorPlace() {
             if (placeActor == "idle") {
@@ -326,6 +330,61 @@
             });
 
             return dropdown;
+        }
+
+        function extractActorPairingData() {
+            // Get the table
+            const table = document.querySelector('table');
+
+            // Initialize results object
+            const pairingResults = {};
+
+            // Start from row 1 to skip the header row
+            for (let i = 1; i < table.rows.length; i++) {
+                const currentRow = table.rows[i];
+                const currentActor = currentRow.cells[0].textContent;
+
+                // Skip rows where actor name is "-"
+                if (currentActor === '-') continue;
+
+                // Iterate through cells in the current row
+                for (let j = 1; j < currentRow.cells.length; j++) {
+                    // Skip diagonal cells
+                    if (currentRow.cells[j].textContent === '-') continue;
+
+                    // Get the winner and reason dropdowns
+                    const dropdowns = currentRow.cells[j].querySelectorAll('select');
+
+                    // Skip if no dropdowns found
+                    if (dropdowns.length !== 2) continue;
+
+                    // Get the actors for this pairing from the header row
+                    const headerRow = table.rows[0];
+                    const actor1 = currentActor;
+                    const actor2 = headerRow.cells[j].textContent;
+
+                    // Create a unique key for the pairing
+                    const pairingKey = [actor1, actor2].sort().join('-');
+
+                    // Extract winner and reason
+                    const winner = dropdowns[0].value;
+                    const reason = dropdowns[1].value;
+
+                    // Only add to results if both winner and reason are selected
+                    if (winner && reason) {
+                        pairingResults[pairingKey] = {
+                            actors: [actor1, actor2],
+                            winner: winner,
+                            reason: reason
+                        };
+                    }
+                }
+            }
+
+            // Log the results as JSON
+            console.log(JSON.stringify(pairingResults, null, 2));
+
+            return pairingResults;
         }
 
     </script>

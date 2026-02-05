@@ -7,94 +7,327 @@
     <title>Crossing maker</title>
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #output {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="controls">
+        <input type="text" id="scenarioName" minlength="4" placeholder="Scenario naam"
+            onchange="changeScenarioName()" />
+        <select onchange="changeCrossingSource()" id="crossingSource">
+            <option value="" disabled selected>Selecteer type kruispunt</option>
+            <option value="kruispunt_4weg">Kruispunt 4-weg met zebrapad</option>
+            <option value="kruispunt_3weg_uitrit">T-splitsing met uitrit</option>
+            <option value="kruispunt_eenrichting_inrit">Kruispunt 4-weg met eenrichting uitrit</option>
+            <option value="kruispunt_onverhard">T-splitsing met onverharde weg</option>
+            <option value="kruispunt_t">T-splitsing met voorrangsweg</option>
+        </select>
+        <br>
+        <select onchange="" id="actorType">
+            <!-- <option value="" disabled selected>Selecteer type actor</option> -->
+            <option value="voetganger" selected>Voetganger</option>
+            <option value="fietser">Fietser</option>
+            <option value="auto1">Auto</option>
+        </select>
+        <button onclick="changeActorPlace()" id="actorSet">Plaats actor</button>
+        <br>
+
+        <!-- <button onclick=""></button>
+        <button onclick=""></button> -->
+        <button onclick="navigator.clipboard.writeText(JSON.stringify(data, null, 2))">Kopiëer JSON van
+            kruispunt</button>
+
+    </div>
     <div id="canvas"></div>
+    <div style="display:flex; height:100vh;" id="actors">
+        <div id="table-container"></div>
+    </div>
 
     <script>
-        let img = null;
-        let data = null;
+        let crossingImg = null;
 
-        function preload() {
-            // img = loadImage('./tcross-2.png');
+        let actorImgs = [];
+        let placeActor = "idle";
+        let tempActor = {};
 
-            // fetch('./tcross-2.json')
-            //     .then((response) => response.json())
-            //     .then((json) => {
-            //         data = json;
-            //         // console.log(json);
-            //     });
+        let data = {
+            "scenario_name": "",
+            "background": "",
+            "actors": [],
+            "interactions": []
+        };
+
+        function changeActorPlace() {
+            if (placeActor == "idle") {
+                document.getElementById('actorSet').disabled = true;
+                placeActor = "place";
+            }
         }
 
         function setup() {
             let canvas = createCanvas(1000, 1000);
             canvas.parent('canvas');
-            
-            
+            angleMode(DEGREES);
+        }
+
+        function mousePressed() {
+            // >> placeActor > rotateActor > destinationActor > idle >>
+            if (placeActor == "place") {
+                tempActor.type = document.getElementById('actorType').value;
+                tempActor.x = mouseX;
+                tempActor.y = mouseY;
+                placeActor = "rotate";
+            } else if (placeActor == "rotate") {
+                tempActor.rotation = map(mouseY, 0, height, 0, 360);
+                placeActor = "destination";
+            } else if (placeActor == "destination") {
+                data.actors.push({
+                    "id": data.actors.length,
+                    "type": tempActor.type,
+                    "x": tempActor.x,
+                    "y": tempActor.y,
+                    "rotation": tempActor.rotation,
+                    "destination": {
+                        "x": mouseX,
+                        "y": mouseY
+                    }
+                });
+                tempActor = {};
+                createActorPairingTable(data.actors);
+                placeActor = "idle";
+                document.getElementById('actorSet').disabled = false;
+            }
         }
 
         function draw() {
-            // background(220);
-            // image(img, 0, 0, width, height);
+            background(220);
+            image(crossingImg, 0, 0, width, height);
 
-            // // Draw all vehicle
-            // data.vehicles.forEach(vehicle => {
-            //     push();
-            //     translate(vehicle.x, vehicle.y);
-            //     rotate(vehicle.angle);
+            if (placeActor == "place") {
+                let actorType = document.getElementById('actorType').value;
+                let tempImg = actorImgs.find((item) => item.type == actorType).img;
+                image(tempImg, mouseX - tempImg.width / 2, mouseY - tempImg.height / 2);
+            } else if (placeActor == "rotate") {
+                let tempImg = actorImgs.find((item) => item.type == tempActor.type).img;
+                push();
+                translate(tempActor.x, tempActor.y);
+                rotate(map(mouseY, 0, height, 0, 360));
+                image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
+                pop();
+            } else if (placeActor == "destination") {
+                let tempImg = actorImgs.find((item) => item.type == tempActor.type).img;
+                push();
+                translate(tempActor.x, tempActor.y);
+                rotate(tempActor.rotation);
+                image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
+                pop();
 
-            //     if (vehicle.type == "car") {
-            //         fill(vehicle.color);
-            //         rect(0, 0, 38, 22);
-            //         fill(255, 255, 0);
-            //         circle(0, 3, 6, 6);
-            //         circle(0, 22 - 3, 6, 6);
-            //         fill(255, 0, 0);
-            //         circle(38, 2, 4, 4);
-            //         circle(38, 22 - 2, 4, 4);
-            //         fill(0, 0, 100);
-            //         rect(10, 2, 5, 18);
-            //         rect(30, 4, 5, 14);
-            //     } else if (vehicle.type == "bicycle") {
-            //         fill(0);
-            //         rect(-4, -1, 8, 4);
-            //         rect(13, -1, 8, 4);
-            //         rect(0, 0, 15, 2);
-            //         rect(2, -5, 2, 12);
-            //         fill(vehicle.color);
-            //         ellipse(9, 1, 6, 16);
-            //         circle(9, 1, 8, 8);
-            //     } else if (vehicle.type == "pedestrian") {
-            //         fill(vehicle.color);
-            //         ellipse(0, 0, 6, 16);
-            //         circle(0, 0, 8, 8);
-            //         fill(0);
-            //         rect(5, -1, 2, 2);
-            //     } else {
-            //         console.error(`Unknown vehicle.type: ${vehicle.type}`);
-            //     }
-            //     pop();
+                drawArrow(tempActor.x, tempActor.y, mouseX, mouseY);
+            }
 
-            //     if (vehicle.testVehicle) console.log(`Vehicle ${vehicle.id} is the test vehicle.`);
+            data.actors.forEach(actor => {
+                let tempImg = actorImgs.find((item) => item.type == actor.type).img;
+                push();
+                translate(actor.x, actor.y);
+                rotate(actor.rotation);
+                image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
+                pop();
 
-            //     // Draw movement lines
-            //     fill(vehicle.color)
-            //     let points = []
-            //     points.push({ "x": vehicle.x, "y": vehicle.y})
-            //     points.push(...data.paths[vehicle.path].intermediateNodes)
-            //     points.push(data.paths[vehicle.path].endNode)
+                fill(255);
+                stroke(0);
+                strokeWeight(2);
+                textSize(25);
+                text(`id ${actor.id}`, actor.x, actor.y);
+                noStroke();
 
-            //     beginShape();
-            //     points.forEach(point => {
-            //         noFill();
-            //         vertex(point.x, point.y);
-            //     })
-            //     endShape();
+                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
+            });
 
-            //     console.log(points);
-            // });
         }
+
+        // -------------HELPERS-----------------------------------------------------------------
+
+        function drawArrow(startX, startY, endX, endY) {
+            // Calculate the angle and length of the arrow
+            let angle = atan2(endY - startY, endX - startX);
+            let distance = dist(startX, startY, endX, endY);
+
+            // Save the current drawing state
+            push();
+
+            // Move to the start point
+            translate(startX, startY);
+
+            // Rotate to align with the arrow direction
+            rotate(angle);
+
+            // Draw the arrow shaft
+            stroke(0);
+            strokeWeight(2);
+            line(0, 0, distance, 0);
+
+            // Draw the arrowhead
+            fill(0);
+            noStroke();
+
+            // Arrowhead triangle
+            beginShape();
+            vertex(distance, 0);
+            vertex(distance - 10, -5);
+            vertex(distance - 10, 5);
+            endShape(CLOSE);
+
+            // Restore the drawing state
+            pop();
+        }
+
+        function changeScenarioName() {
+            let scenarioName = document.getElementById('scenarioName').value;
+            data.scenario_name = scenarioName;
+        }
+
+        function changeCrossingSource() {
+            let crossingSource = document.getElementById('crossingSource').value;
+            crossingImg = loadImage('./assets/images/' + crossingSource + ".png");
+            data.background = "./assets/images/" + crossingSource + ".png";
+        }
+
+        function preload() {
+            // TODO: default image, remove if final
+            crossingImg = loadImage('./assets/images/kruispunt_4weg.png');
+
+            // add all actors
+            actorImgs.push({
+                "type": "voetganger",
+                "img": loadImage('./assets/images/voetganger.png')
+            });
+            actorImgs.push({
+                "type": "fietser",
+                "img": loadImage('./assets/images/fietser.png')
+            });
+            actorImgs.push({
+                "type": "auto1",
+                "img": loadImage('./assets/images/auto1.png')
+            });
+
+            fetch('./assets/scenarios/0001.json')
+                .then((response) => response.json())
+                .then((json) => {
+                    data = json;
+
+                    createActorPairingTable(data.actors);
+                });
+
+
+        }
+
+        // ------------INTERACTIONS--------------------------------------------
+
+        function createActorPairingTable(actors) {
+            // Create table container
+            const container = document.getElementById('table-container');
+            if (container.firstElementChild) container.removeChild(container.firstElementChild);
+            const table = document.createElement('table');
+
+            // Create header row
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th>Actors</th>';
+            for (let i = 0; i < actors.length; i++) {
+                headerRow.innerHTML += `<th>id ${i}</th>`;
+            }
+
+            table.appendChild(headerRow);
+
+            // Create pairing rows
+            for (let i = 0; i < actors.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>id ${[i]}</td>`;
+
+                for (let j = 0; j < actors.length; j++) {
+                    if (i === j) {
+                        // Diagonal cells (same actor)
+                        row.innerHTML += '<td>-</td>';
+                    } else if (j > i) {
+                        // Only create dropdowns for unique pairs
+                        const cell = document.createElement('td');
+
+                        // First dropdown (Winner)
+                        const winnerDropdown = document.createElement('select');
+                        winnerDropdown.innerHTML = `
+                            <option value="" disabled selected>Winner</option>
+                            <option value="id ${[i]}">id ${[i]}</option>
+                            <option value="id ${[j]}">id ${[j]}</option>
+                        `;
+
+                        // Second dropdown (Reasons)
+                        const reasonDropdown = createReasonDropdown(actors[i], actors[j]);
+
+                        cell.appendChild(winnerDropdown);
+                        cell.appendChild(reasonDropdown);
+                        row.appendChild(cell);
+                    }
+                }
+
+                table.appendChild(row);
+            }
+
+            container.appendChild(table);
+        }
+
+        function createReasonDropdown(actor1, actor2) {
+            const dropdown = document.createElement('select');
+
+            // Predefined reasons for winner
+            const reasons = [
+                "Rechtdoor op dezelfde weg",
+                "Voetgangersoversteekplaats (VOP)"
+            ];
+
+            dropdown.innerHTML = '<option value="" disabled selected>Select Reason</option>';
+
+            reasons.forEach(reason => {
+                const option = document.createElement('option');
+                option.value = reason;
+                option.textContent = reason;
+                dropdown.appendChild(option);
+            });
+
+            return dropdown;
+        }
+
     </script>
 
 </body>

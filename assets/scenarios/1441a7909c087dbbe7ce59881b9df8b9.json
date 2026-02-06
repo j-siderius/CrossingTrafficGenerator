@@ -1,0 +1,133 @@
+{
+    "scenario_name": "Testscenario",
+    "background": "./assets/images/kruispunt_4weg.png",
+    "actors": [
+        {
+            "id": 0,
+            "type": "auto1",
+            "x": 550,
+            "y": 700,
+            "rotation": 0,
+            "destination": {
+                "x": 550,
+                "y": 250
+            }
+        },
+        {
+            "id": 1,
+            "type": "fietser",
+            "x": 450,
+            "y": 250,
+            "rotation": 180,
+            "destination": {
+                "x": 650,
+                "y": 550
+            }
+        },
+        {
+            "id": 2,
+            "type": "voetganger",
+            "x": 625,
+            "y": 370,
+            "rotation": 270,
+            "destination": {
+                "x": 375,
+                "y": 370
+            }
+        },
+        {
+            "id": 3,
+            "type": "fietser",
+            "x": 342,
+            "y": 550,
+            "rotation": 89.64,
+            "destination": {
+                "x": 718,
+                "y": 550
+            }
+        }
+    ],
+    "interactions": [
+        {
+            "id": 0,
+            "actor_pair": [
+                0,
+                1
+            ],
+            "winner": 0,
+            "reason": "Rechtdoor op zelfde weg"
+        },
+        {
+            "id": 1,
+            "actor_pair": [
+                0,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        },
+        {
+            "id": 2,
+            "actor_pair": [
+                1,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        },
+        {
+            "id": 3,
+            "actor_pair": [
+                0,
+                1
+            ],
+            "winner": 0,
+            "reason": "Rechtdoor op zelfde weg"
+        },
+        {
+            "id": 4,
+            "actor_pair": [
+                0,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        },
+        {
+            "id": 5,
+            "actor_pair": [
+                0,
+                3
+            ],
+            "winner": 0,
+            "reason": "Voorrangsweg"
+        },
+        {
+            "id": 6,
+            "actor_pair": [
+                1,
+                2
+            ],
+            "winner": 2,
+            "reason": "Voetgangersoversteekplaats (VOP)"
+        },
+        {
+            "id": 7,
+            "actor_pair": [
+                1,
+                3
+            ],
+            "winner": 3,
+            "reason": "Voorrangsweg"
+        },
+        {
+            "id": 8,
+            "actor_pair": [
+                2,
+                3
+            ],
+            "winner": 2,
+            "reason": "Rechtdoor op zelfde weg"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+[
+    {
+        "scenario_name": "4weg_voetgangeroversteekplaats_autofietservoetganger",
+        "file": "0001.json"
+    },
+    { 
+        "scenario_name": "test",
+        "file": "0002.json" 
+    },
+    {
+        "scenario_name": "Testscenario2",
+        "file": "1441a7909c087dbbe7ce59881b9df8b9.json"
+    }
+]

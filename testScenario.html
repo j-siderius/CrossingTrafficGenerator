@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossing maker</title>
+    <title>Crossing tester</title>
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
@@ -51,8 +51,13 @@
     <div style="display:flex; height:100vh;" id="actors">
         <!-- Contains all control elements to build a scenario -->
         <div id="controls">
-            <form>
-                <fieldset>
+
+            <select onchange="changeScenario()" id="crossingSource">
+                <option value="" disabled selected>Selecteer een scenario</option>
+            </select>
+
+            <form onsubmit="checkAnswer()">
+                <fieldset id="test" disabled>
                     <legend id="question"><b>Welke weggebruiker gaat eerst?</b></legend>
                     <div id="answers">
                         <input type="radio" id="actor0" name="actors" value="0" />
@@ -66,11 +71,11 @@
                     </div>
                     <div>
                         <br>
-                        <button onclick="">Controleer antwoord</button>
+                        <button>Controleer antwoord</button>
                     </div>
                 </fieldset>
             </form>
-            <div id="explanation" style="display:block;">
+            <div id="explanation" style="display:none;">
                 <p id="uitleg">Weggebruiker 2 mag eerst: </p>
                 <span>RVV49.2: voorrang op Voetgangersoversteekplaats (VOP)</span>
             </div>
@@ -79,7 +84,12 @@
 
     <script>
         // Main data object
-        let data = {};
+        let data = {
+            "scenario_name": "",
+            "background": "",
+            "actors": [],
+            "interactions": []
+        };
 
         // Sets up the scenario visualiser
         function setup() {
@@ -121,6 +131,23 @@
         }
 
         // -------------HELPERS-----------------------------------------------------------------
+
+        function checkAnswer() {
+            document.getElementById('crossingSource').disabled = false;
+            document.getElementById('explanation').style.display = 'block';
+        }
+
+        function changeScenario() {
+            let scenario = document.getElementById('crossingSource').value;
+            fetch(`./assets/scenarios/${scenario}`)
+                .then((response) => response.json())
+                .then((json) => {
+                    data = json;
+                });
+
+            document.getElementById('crossingSource').disabled = true;
+            document.getElementById('test').disabled = false;
+        }
 
         // Draw the destination arrow to indicate where actors want to travel to
         function drawArrow(startX, startY, endX, endY) {
@@ -168,12 +195,17 @@
                 "type": "auto1",
                 "img": loadImage('./assets/images/auto1.png')
             });
-
-            // TODO: default scenario, remove if final
-            fetch('./assets/scenarios/0001.json')
+            
+            fetch('./assets/scenarios/scenarios.json')
                 .then((response) => response.json())
                 .then((json) => {
-                    data = json;
+                    let crossingSelector = document.getElementById('crossingSource');
+                    json.forEach((scenario) => {
+                        let tempOption = document.createElement('option');
+                        tempOption.value = scenario.file;
+                        tempOption.innerHTML = scenario.scenario_name;
+                        crossingSelector.appendChild(tempOption);
+                    });
                 });
         }
 

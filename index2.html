@@ -75,7 +75,8 @@
 
             <br><br>
 
-            <div id="table-container" onchange="changeInteractionTable()"></div>
+            <!-- <div id="table-container" onchange="changeInteractionTable()"></div> -->
+            <div id="interactions-container" onchange="changedInteractions()"></div>
         </div>
     </div>
 
@@ -134,6 +135,7 @@
                 });
                 tempActor = {};
                 // createActorPairingTable(data.actors);
+                loadInteractions(data);
                 placeActor = "idle";
                 document.getElementById('actorSet').disabled = false;
             }
@@ -254,9 +256,9 @@
                 .then((response) => response.json())
                 .then((json) => {
                     data = json;
-
+                    loadInteractions(data);
                     // createActorPairingTable(data.actors);
-                    createTable();
+                    // createTable();
                 });
 
 
@@ -264,172 +266,137 @@
 
         // ------------INTERACTIONS--------------------------------------------
 
-        function createActorPairingTable(actors) {
-            // Create table container
-            const container = document.getElementById('table-container');
+        // Store interaction elements for extraction
+        const interactionElements = [];
+
+        function loadInteractions(data) {
+            const actors = data.actors;
+            const existingInteractions = data.interactions;
+
+            // Create a set to track unique interactions
+            const interactionSet = new Set();
+
+            // Generate interaction matrix
+            const container = document.getElementById('interactions-container');
             if (container.firstElementChild) container.removeChild(container.firstElementChild);
             const table = document.createElement('table');
 
             // Create header row
             const headerRow = document.createElement('tr');
-            headerRow.innerHTML = '<th>Actors</th>';
-            for (let i = 0; i < actors.length; i++) {
-                headerRow.innerHTML += `<th>id ${i}</th>`;
-            }
+            const emptyCell = document.createElement('th');
+            headerRow.appendChild(emptyCell);
 
+            actors.forEach(actor => {
+                const headerCell = document.createElement('th');
+                headerCell.textContent = `Actor ${actor.id} (${actor.type})`;
+                headerRow.appendChild(headerCell);
+            });
             table.appendChild(headerRow);
 
-            // Create pairing rows
-            for (let i = 0; i < actors.length; i++) {
+            // Create interaction rows
+            actors.forEach((rowActor, rowIndex) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>id ${[i]}</td>`;
 
-                for (let j = 0; j < actors.length; j++) {
-                    if (i === j) {
-                        // Diagonal cells (same actor)
-                        row.innerHTML += '<td>-</td>';
-                    } else if (j > i) {
-                        // Only create dropdowns for unique pairs
-                        const cell = document.createElement('td');
+                // Row header with actor info
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = `Actor ${rowActor.id} (${rowActor.type})`;
+                row.appendChild(rowHeader);
 
-                        // First dropdown (Winner)
-                        const winnerDropdown = document.createElement('select');
-                        winnerDropdown.innerHTML = `
-                            <option value="" disabled selected>Winner</option>
-                            <option value="id ${[i]}">id ${[i]}</option>
-                            <option value="id ${[j]}">id ${[j]}</option>
-                        `;
+                actors.forEach((colActor, colIndex) => {
+                    const cell = document.createElement('td');
 
-                        // Second dropdown (Reasons)
-                        const reasonDropdown = createReasonDropdown(actors[i], actors[j]);
-
-                        cell.appendChild(winnerDropdown);
-                        cell.appendChild(reasonDropdown);
-                        row.appendChild(cell);
-                    }
-                }
-
-                table.appendChild(row);
-            }
-
-            container.appendChild(table);
-        }
-
-        function createReasonDropdown(actor1, actor2) {
-            const dropdown = document.createElement('select');
-
-            // Predefined reasons for winner
-            const reasons = [
-                "Rechtdoor op dezelfde weg",
-                "Voetgangersoversteekplaats (VOP)"
-            ];
-
-            dropdown.innerHTML = '<option value="" disabled selected>Select Reason</option>';
-
-            reasons.forEach(reason => {
-                const option = document.createElement('option');
-                option.value = reason;
-                option.textContent = reason;
-                dropdown.appendChild(option);
-            });
-
-            return dropdown;
-        }
-
-        function extractActorPairingData() {
-            // Get the table
-            const table = document.querySelector('table');
-
-            // Initialize results object
-            const pairingResults = {};
-
-            // Start from row 1 to skip the header row
-            for (let i = 1; i < table.rows.length; i++) {
-                const currentRow = table.rows[i];
-                const currentActor = currentRow.cells[0].textContent;
-
-                // Skip rows where actor name is "-"
-                if (currentActor === '-') continue;
-
-                // Iterate through cells in the current row
-                for (let j = 1; j < currentRow.cells.length; j++) {
-                    // Skip diagonal cells
-                    if (currentRow.cells[j].textContent === '-') continue;
-
-                    // Get the winner and reason dropdowns
-                    const dropdowns = currentRow.cells[j].querySelectorAll('select');
-
-                    // Skip if no dropdowns found
-                    if (dropdowns.length !== 2) continue;
-
-                    // Get the actors for this pairing from the header row
-                    const headerRow = table.rows[0];
-                    const actor1 = currentActor;
-                    const actor2 = headerRow.cells[j].textContent;
-
-                    // Create a unique key for the pairing
-                    const pairingKey = [actor1, actor2].sort().join('-');
-
-                    // Extract winner and reason
-                    const winner = dropdowns[0].value;
-                    const reason = dropdowns[1].value;
-
-                    // Only add to results if both winner and reason are selected
-                    if (winner && reason) {
-                        pairingResults[pairingKey] = {
-                            actors: [actor1, actor2],
-                            winner: winner,
-                            reason: reason
-                        };
-                    }
-                }
-            }
-
-            // Log the results as JSON
-            console.log(JSON.stringify(pairingResults, null, 2));
-
-            return pairingResults;
-        }
-
-        function createTable() {
-            // Create table container
-            const container = document.getElementById('table-container');
-            if (container.firstElementChild) container.removeChild(container.firstElementChild);
-            const table = document.createElement('table');
-
-            // Create header row
-            const headerRow = document.createElement('tr');
-            headerRow.innerHTML = '<th>Actors</th>';
-            data.actors.forEach(actor => {
-                headerRow.innerHTML += `<th>${actor.id}</th>`;
-            });
-
-            table.appendChild(headerRow);
-
-            data.actors.forEach((actor, index) => {
-                if (index == 0) return;
-                const row = document.createElement('tr');
-                row.innerHTML += `<td><b>${actor.id}</b></td>`;
-
-                data.actors.forEach((actor2, index2) => {
-                    // console.log(actor, actor2, index, index2);
-                    if (actor.id == actor2.id) {
-                        row.innerHTML += "<td>-</td>"
+                    // Skip diagonal interactions
+                    if (rowIndex === colIndex) {
+                        cell.textContent = '-';
                     } else {
-                        const cell = document.createElement('td');
-                        // row.innerHTML += `<td>${actor2.id} vs. ${actor.id}</td>`
-                        const title = document.createElement('p');
-                        title.innerHTML = `${actor2.id} vs. ${actor.id}`;
-                        cell.appendChild(title);
-                        row.appendChild(cell);
+                        // Ensure unique interaction order
+                        const interactionKey = rowActor.id < colActor.id
+                            ? `${rowActor.id}-${colActor.id}`
+                            : `${colActor.id}-${rowActor.id}`;
+
+                        if (interactionSet.has(interactionKey)) {
+                            cell.textContent = '-';
+                        } else {
+                            interactionSet.add(interactionKey);
+
+                            // Create winner dropdown
+                            const winnerSelect = document.createElement('select');
+                            winnerSelect.innerHTML = `
+                                <option value="" disabled selected>Select Winner</option>
+                                <option value="${rowActor.id}">Actor ${rowActor.id} (${rowActor.type})</option>
+                                <option value="${colActor.id}">Actor ${colActor.id} (${colActor.type})</option>
+                            `;
+
+                            // Create reason dropdown
+                            let reasons = [
+                                "Rechtdoor op zelfde weg",
+                                "Voetgangersoversteekplaats (VOP)",
+                                "Voorrangsweg"
+                            ]
+
+                            const reasonSelect = document.createElement('select');
+                            reasonSelect.innerHTML = `<option value="" disabled selected>Select Reason</option>`;
+                            reasons.forEach(reason => {
+                                reasonSelect.innerHTML += `<option value="${reason}">${reason}</option>`;
+                            });
+
+                            // Find existing interaction
+                            const existingInteraction = existingInteractions.find(
+                                interaction => (
+                                    (interaction.actor_pair[0] === rowActor.id &&
+                                        interaction.actor_pair[1] === colActor.id) ||
+                                    (interaction.actor_pair[0] === colActor.id &&
+                                        interaction.actor_pair[1] === rowActor.id)
+                                )
+                            );
+
+                            // Populate with existing interaction if available
+                            if (existingInteraction) {
+                                winnerSelect.value = existingInteraction.winner;
+                                reasonSelect.value = existingInteraction.reason;
+                            }
+
+                            // Store interaction details for later extraction
+                            interactionElements.push({
+                                actorPair: [rowActor.id, colActor.id],
+                                winnerSelect,
+                                reasonSelect
+                            });
+
+                            // Append dropdowns to cell
+                            cell.appendChild(winnerSelect);
+                            cell.appendChild(reasonSelect);
+                        }
                     }
 
+                    row.appendChild(cell);
                 });
 
                 table.appendChild(row);
             });
 
             container.appendChild(table);
+        }
+
+        function changedInteractions() {
+            let interactions = [];
+
+            interactionElements.forEach((interaction, index) => {
+                const winner = interaction.winnerSelect.value;
+                const reason = interaction.reasonSelect.value;
+
+                // Only add interactions with both winner and reason selected
+                if (winner && reason) {
+                    interactions.push({
+                        id: interactions.length,
+                        actor_pair: interaction.actorPair,
+                        winner: parseInt(winner),
+                        reason: reason
+                    });
+                }
+            });
+
+            data.interactions = interactions;
         }
 
     </script>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossing maker</title>
+    <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        #output {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Contains the scenario visualiser -->
+    <div id="canvas"></div>
+
+    <div style="display:flex; height:100vh;" id="actors">
+        <!-- Contains all control elements to build a scenario -->
+        <div id="controls">
+            <form>
+                <fieldset>
+                    <legend id="question"><b>Welke weggebruiker gaat eerst?</b></legend>
+                    <div id="answers">
+                        <input type="radio" id="actor0" name="actors" value="0" />
+                        <label for="actor0">Weggebruiker 0</label>
+                        <br>
+                        <input type="radio" id="actor1" name="actors" value="1" />
+                        <label for="actor1">Weggebruiker 1</label>
+                        <br>
+                        <input type="radio" id="actor2" name="actors" value="2" />
+                        <label for="actor2">Weggebruiker 2</label>
+                    </div>
+                    <div>
+                        <br>
+                        <button onclick="">Controleer antwoord</button>
+                    </div>
+                </fieldset>
+            </form>
+            <div id="explanation" style="display:block;">
+                <p id="uitleg">Weggebruiker 2 mag eerst: </p>
+                <span>RVV49.2: voorrang op Voetgangersoversteekplaats (VOP)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Main data object
+        let data = {};
+
+        // Sets up the scenario visualiser
+        function setup() {
+            let canvas = createCanvas(1000, 1000);
+            canvas.parent('canvas');
+            angleMode(DEGREES);
+        }
+
+        // Main visualiser variables
+        let crossingImg = null;
+        // Main draw loop
+        function draw() {
+            // Draw the background and current crossing image
+            background(220);
+            image(crossingImg, 0, 0, width, height);
+
+            // Draw all the actors in the data object
+            data.actors.forEach(actor => {
+                // Find the corresponding actor image, then place it according the the position and rotation
+                let tempImg = actorImgs.find((item) => item.type == actor.type).img;
+                push();
+                translate(actor.x, actor.y);
+                rotate(actor.rotation);
+                image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
+                pop();
+
+                // Draw the actor ID for identification
+                fill(255);
+                stroke(0);
+                strokeWeight(2);
+                textSize(25);
+                text(`${actor.id}`, actor.x, actor.y);
+                noStroke();
+
+                // Draw the destination arrow for the actor
+                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
+            });
+
+        }
+
+        // -------------HELPERS-----------------------------------------------------------------
+
+        // Draw the destination arrow to indicate where actors want to travel to
+        function drawArrow(startX, startY, endX, endY) {
+            // Calculate the angle and length of the arrow
+            let angle = atan2(endY - startY, endX - startX);
+            let distance = dist(startX, startY, endX, endY);
+
+            // Draw the angle at the start coordinates
+            push();
+            translate(startX, startY);
+            rotate(angle);
+
+            stroke(0);
+            strokeWeight(2);
+            line(0, 0, distance, 0);
+
+            // Draw the arrow head at the destination coordinates using the calculated vector
+            fill(0);
+            noStroke();
+            beginShape();
+            vertex(distance, 0);
+            vertex(distance - 10, -5);
+            vertex(distance - 10, 5);
+            endShape(CLOSE);
+            pop();
+        }
+
+        // Define actor image variable to house all actor image objects
+        let actorImgs = [];
+        // Load data before the visualiser is started
+        function preload() {
+            // TODO: default image, remove if final
+            crossingImg = loadImage('./assets/images/kruispunt_4weg.png');
+
+            // Load all actor images and put the in an image array for easy access
+            actorImgs.push({
+                "type": "voetganger",
+                "img": loadImage('./assets/images/voetganger.png')
+            });
+            actorImgs.push({
+                "type": "fietser",
+                "img": loadImage('./assets/images/fietser.png')
+            });
+            actorImgs.push({
+                "type": "auto1",
+                "img": loadImage('./assets/images/auto1.png')
+            });
+
+            // TODO: default scenario, remove if final
+            fetch('./assets/scenarios/0001.json')
+                .then((response) => response.json())
+                .then((json) => {
+                    data = json;
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>

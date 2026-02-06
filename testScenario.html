@@ -59,14 +59,6 @@
                 <fieldset id="test" disabled>
                     <legend id="question"><b>Welke weggebruiker gaat eerst?</b></legend>
                     <div id="answers">
-                        <input type="radio" id="actor0" name="actors" value="0" />
-                        <label for="actor0">Weggebruiker 0</label>
-                        <br>
-                        <input type="radio" id="actor1" name="actors" value="1" />
-                        <label for="actor1">Weggebruiker 1</label>
-                        <br>
-                        <input type="radio" id="actor2" name="actors" value="2" />
-                        <label for="actor2">Weggebruiker 2</label>
                     </div>
                     <div>
                         <br>
@@ -75,8 +67,8 @@
                 </fieldset>
             </form>
             <div id="explanation" style="display:none;">
-                <p id="uitleg">Weggebruiker 2 mag eerst: </p>
-                <span>RVV49.2: voorrang op Voetgangersoversteekplaats (VOP)</span>
+                <p id="uitleg"></p>
+                <span id="regel"></span>
             </div>
         </div>
     </div>
@@ -103,7 +95,7 @@
         function draw() {
             // Draw the background and current crossing image
             background(220);
-            image(crossingImg, 0, 0, width, height);
+            if (crossingImg) image(crossingImg, 0, 0, width, height);
 
             // Draw all the actors in the data object
             data.actors.forEach(actor => {
@@ -132,7 +124,9 @@
         // -------------HELPERS-----------------------------------------------------------------
 
         function checkAnswer() {
-            document.getElementById('crossingSource').disabled = false;
+            event.preventDefault();
+            // TODO: add reloading behaviour
+            // document.getElementById('crossingSource').disabled = false;
             document.getElementById('explanation').style.display = 'block';
         }
 
@@ -143,6 +137,25 @@
                 .then((json) => {
                     data = json;
                     crossingImg = loadImage(data.background);
+
+                    let answersDOM = document.getElementById('answers');
+                    data.actors.forEach((actor) => {
+                        let tempRadio = document.createElement('input');
+                        tempRadio.type = "radio";
+                        tempRadio.id = `actor${actor.id}`;
+                        tempRadio.name = "actors";
+                        tempRadio.value = actor.id;
+                        answersDOM.append(tempRadio);
+                        let tempLabel = document.createElement('label');
+                        tempLabel.for = `actor${actor.id}`;
+                        tempLabel.innerHTML = `Weggebruiker ${actor.id}`;
+                        answersDOM.append(tempLabel);
+                        answersDOM.append(document.createElement('br'));
+                    });
+
+                    document.getElementById('uitleg').innerHTML = `Weggebruiker ${data.interactions[0].winner} mag eerst:`;
+                    document.getElementById('regel').innerHTML = `${data.interactions[0].reason}`;
+
                 });
 
             document.getElementById('crossingSource').disabled = true;
@@ -179,8 +192,6 @@
         let actorImgs = [];
         // Load data before the visualiser is started
         function preload() {
-            // TODO: default image, remove if final
-            crossingImg = loadImage('./assets/images/kruispunt_4weg.png');
 
             // Load all actor images and put the in an image array for easy access
             actorImgs.push({

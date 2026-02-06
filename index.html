@@ -5,14 +5,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
-    <title>Crossing theory application</title>
+    <title>Crossing Theory Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f4f6f7;
+            --text-color: #2c3e50;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-card a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        .dashboard-card a:hover {
+            color: var(--secondary-color);
+        }
+
+        .dashboard-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Crossing theory application</h1>
-    <a href="createScenario.html">Create a crossing scenario</a>
-    <br>
-    <a href="testScenario.html">Test a crossing scenario</a>
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1>Crossing Theory Application</h1>
+        </header>
+        <div class="dashboard-grid">
+            <div class="dashboard-card" data-link="createScenario.html">
+                <div class="icon">📝</div>
+                <a href="createScenario.html">Create a Crossing Scenario</a>
+            </div>
+            <div class="dashboard-card" data-link="testScenario.html">
+                <div class="icon">🚦</div>
+                <a href="testScenario.html">Test a Crossing Scenario</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add click event listener to all dashboard cards
+        document.querySelectorAll('.dashboard-card').forEach(card => {
+            card.addEventListener('click', function(event) {
+                // Get the link from the data-link attribute
+                const link = this.getAttribute('data-link');
+                
+                // Navigate to the specified page
+                if (link) {
+                    window.location.href = link;
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

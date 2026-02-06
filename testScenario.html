@@ -4,41 +4,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossing tester</title>
+    <title>Crossing Tester</title>
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
 
     <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f4f6f7;
+            --text-color: #2c3e50;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --input-border-color: #bdc3c7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
             display: flex;
-            gap: 20px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        #canvas {
+            flex: 1;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        #actors {
+            width: 50%;
+            height: 100%;
+            overflow: auto;
         }
 
         #controls {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            width: 300px;
+            gap: 1rem;
+        }
+
+        #crossingSource {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--input-border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            appearance: none;
+            background-color: white;
+        }
+
+        fieldset {
+            border: 1px solid var(--input-border-color);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        legend {
+            padding: 0 0.5rem;
+            color: var(--primary-color);
         }
 
         button {
-            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
         }
 
-        #output {
-            flex: 1;
-            background: #f5f5f5;
-            padding: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 600px;
-            overflow-y: auto;
-            box-sizing: border-box;
-            resize: vertical;
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #explanation {
+            background-color: #f1f4f8;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        #uitleg, #regel {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+            }
+
+            #actors, #canvas {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -55,14 +129,14 @@
                 <option value="" disabled selected>Selecteer een scenario</option>
             </select>
 
-            <form onsubmit="checkAnswer()">
+            <form onsubmit="checkAnswer(event)">
                 <fieldset id="test" disabled>
                     <legend id="question"><b>Welke weggebruiker gaat eerst?</b></legend>
                     <div id="answers">
                     </div>
                     <div>
                         <br>
-                        <button>Controleer antwoord</button>
+                        <button type="submit">Controleer antwoord</button>
                     </div>
                 </fieldset>
             </form>

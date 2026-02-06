@@ -161,7 +161,7 @@
         function draw() {
             // Draw the background and current crossing image
             background(220);
-            image(crossingImg, 0, 0, width, height);
+            if (crossingImg) image(crossingImg, 0, 0, width, height);
 
             if (placeActor == "place") {
                 let actorType = document.getElementById('actorType').value;
@@ -175,18 +175,21 @@
                 image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
                 pop();
             } else if (placeActor == "destination") {
+                drawArrow(tempActor.x, tempActor.y, mouseX, mouseY);
+
                 let tempImg = actorImgs.find((item) => item.type == tempActor.type).img;
                 push();
                 translate(tempActor.x, tempActor.y);
                 rotate(tempActor.rotation);
                 image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
                 pop();
-
-                drawArrow(tempActor.x, tempActor.y, mouseX, mouseY);
             }
 
             // Draw all the actors in the data object
             data.actors.forEach(actor => {
+                // Draw the destination arrow for the actor
+                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
+
                 // Find the corresponding actor image, then place it according the the position and rotation
                 let tempImg = actorImgs.find((item) => item.type == actor.type).img;
                 push();
@@ -200,11 +203,8 @@
                 stroke(0);
                 strokeWeight(2);
                 textSize(25);
-                text(`${actor.id}`, actor.x, actor.y);
+                text(`${actor.id}`, actor.x - 7, actor.y + 5);
                 noStroke();
-
-                // Draw the destination arrow for the actor
-                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
             });
 
         }
@@ -254,8 +254,6 @@
         let actorImgs = [];
         // Load data before the visualiser is started
         function preload() {
-            // TODO: default image, remove if final
-            crossingImg = loadImage('./assets/images/kruispunt_4weg.png');
 
             // Load all actor images and put the in an image array for easy access
             actorImgs.push({
@@ -270,14 +268,6 @@
                 "type": "auto1",
                 "img": loadImage('./assets/images/auto1.png')
             });
-
-            // TODO: default scenario, remove if final
-            fetch('./assets/scenarios/0001.json')
-                .then((response) => response.json())
-                .then((json) => {
-                    data = json;
-                    loadInteractions(data);
-                });
         }
 
         // ------------INTERACTIONS--------------------------------------------
@@ -286,9 +276,48 @@
         const interactionElements = [];
         // Store all possible reasons for an actor winner
         let reasons = [
-            "Rechtdoor op zelfde weg",
-            "Voetgangersoversteekplaats (VOP)",
-            "Voorrangsweg"
+            "RVV1: voetganger geen bestuurder",
+            "RVV 15.1: rechts voorrang",
+            "RVV 15.2A: onverharde weg",
+            "RVV 15.2B: trams voorrang",
+            "RVV 18.1: rechtd zelfde weg",
+            "RVV 18.2: korte vóór lange bocht",
+            "RVV 18.3: afslaande tram voorrang",
+            "RVV50: voorrangsvoertuig",
+            "RVV54: inenuitrit of erf mano",
+            "RVV80: haaientanden",
+            "RVV80: stopstreep",
+            "RVV62: tekens opvolgen",
+            "RVV16: colonnes/stoeten",
+            "RVV49.1: Overstek blinden/gehand",
+            "RVV49.2: VOP",
+            "RVV49.3: Kolonnes gaan voor",
+            "RVV49.4: VOP rood/glkn voetglicht",
+            "RVV74.2: Geel knip voetglicht",
+            "Bord B1: voorrangsweg",
+            "Bord B2: Einde voorrangsweg",
+            "Bord B3: Voorrangskruispunt",
+            "Bord B4: Voorrangskruispunt zijweg links",
+            "Bord B5: Voorrangskruispunt zijweg rechts",
+            "Bord B6: voorrang kruisende weg",
+            "Bord B7: stop-verleen kr weg voorrang",
+            "RVV68.1a; Rond - groen",
+            "RVV68.1b; Rond - geel",
+            "RVV68.1c; Rond - rood",
+            "RVV68.2; Pijl - groen",
+            "RVV68.2; Pijl - geel",
+            "RVV68.2; Pijl - rood",
+            "RVV68.3; Rood",
+            "RVV68.3; Geel",
+            "RVV68.3; Groen",
+            "RVV68.5; Rood en rechtsaf vrij",
+            "RVV 70.1, BT wit",
+            "RVV 70.1b, BT geel",
+            "RVV 70.1b, BT rood",
+            "RVV74.1;VT Groen",
+            "RVV74.2; VT Groen knipperend",
+            "RVV74.1; VT Rood",
+            "RVV74.2; Vt Geel knipperend"
         ]
         // Load all interactions from the data object
         function loadInteractions(data) {

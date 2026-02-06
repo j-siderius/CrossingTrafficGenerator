@@ -108,6 +108,9 @@
 
             // Draw all the actors in the data object
             data.actors.forEach(actor => {
+                // Draw the destination arrow for the actor
+                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
+
                 // Find the corresponding actor image, then place it according the the position and rotation
                 let tempImg = actorImgs.find((item) => item.type == actor.type).img;
                 push();
@@ -123,9 +126,6 @@
                 textSize(25);
                 text(`${actor.id}`, actor.x, actor.y);
                 noStroke();
-
-                // Draw the destination arrow for the actor
-                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
             });
 
         }

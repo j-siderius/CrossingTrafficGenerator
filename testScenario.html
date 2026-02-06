@@ -142,6 +142,7 @@
                 .then((response) => response.json())
                 .then((json) => {
                     data = json;
+                    crossingImg = loadImage(data.background);
                 });
 
             document.getElementById('crossingSource').disabled = true;

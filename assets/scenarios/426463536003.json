@@ -1,0 +1,1 @@
+{"scenario_name":"","background":"./assets/images/kruispunt_onverhard.png","actors":[{"id":0,"type":"auto1","x":333,"y":547,"rotation":90.72,"destination":{"x":637,"y":547}},{"id":1,"type":"auto1","x":503,"y":789,"rotation":0,"destination":{"x":637,"y":551}}],"interactions":[{"id":0,"actor_pair":[0,1],"winner":0,"reason":"RVV 15.2A: onverharde weg"}]}

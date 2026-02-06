@@ -1,0 +1,1 @@
+{"scenario_name":"","background":"./assets/images/kruispunt_t.png","actors":[{"id":0,"type":"fietser","x":677,"y":452,"rotation":270,"destination":{"x":313,"y":452}},{"id":1,"type":"auto1","x":450,"y":265,"rotation":179.64,"destination":{"x":668,"y":567}}],"interactions":[{"id":0,"actor_pair":[0,1],"winner":0,"reason":"Bord B6: voorrang kruisende weg"}]}

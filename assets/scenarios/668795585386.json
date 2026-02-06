@@ -1,0 +1,1 @@
+{"scenario_name":"","background":"./assets/images/kruispunt_3weg_uitrit.png","actors":[{"id":0,"type":"fietser","x":339,"y":554,"rotation":90.36,"destination":{"x":663,"y":552}},{"id":1,"type":"auto1","x":548,"y":754,"rotation":-0.36,"destination":{"x":328,"y":434}}],"interactions":[{"id":0,"actor_pair":[0,1],"winner":0,"reason":"RVV62: tekens opvolgen"}]}

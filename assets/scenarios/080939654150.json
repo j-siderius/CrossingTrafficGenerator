@@ -1,0 +1,1 @@
+{"scenario_name":"","background":"./assets/images/kruispunt_4weg.png","actors":[{"id":0,"type":"voetganger","x":638,"y":368,"rotation":271.44,"destination":{"x":348,"y":365}},{"id":1,"type":"auto1","x":550,"y":691,"rotation":0.36,"destination":{"x":552,"y":273}}],"interactions":[{"id":0,"actor_pair":[0,1],"winner":0,"reason":"RVV49.2: VOP"}]}

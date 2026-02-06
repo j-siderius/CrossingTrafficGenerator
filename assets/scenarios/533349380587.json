@@ -1,0 +1,1 @@
+{"scenario_name":"","background":"./assets/images/kruispunt_eenrichting_inrit.png","actors":[{"id":0,"type":"fietser","x":501,"y":678,"rotation":1.44,"destination":{"x":547,"y":343}},{"id":1,"type":"auto1","x":700,"y":446,"rotation":270.36,"destination":{"x":334,"y":448}}],"interactions":[{"id":0,"actor_pair":[0,1],"winner":1,"reason":"RVV80: stopstreep"}]}

@@ -7,7 +7,6 @@
     <title>Crossing maker</title>
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 
     <style>
         body {
@@ -94,7 +93,7 @@
         function downloadJSON() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
             let downloadAnchorNode = document.createElement('a');
-            let downloadName = md5(data);
+            let downloadName = String(Math.floor(Math.random()*999999999999)).padStart(12, '0');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", downloadName + ".json");
             document.body.appendChild(downloadAnchorNode); // required for firefox

@@ -7,7 +7,6 @@
     <title>Crossing tester</title>
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 
     <style>
         body {
@@ -124,7 +123,7 @@
                 stroke(0);
                 strokeWeight(2);
                 textSize(25);
-                text(`${actor.id}`, actor.x, actor.y);
+                text(`${actor.id}`, actor.x - 7, actor.y + 5);
                 noStroke();
             });
 
@@ -195,7 +194,7 @@
                 "type": "auto1",
                 "img": loadImage('./assets/images/auto1.png')
             });
-            
+
             fetch('./assets/scenarios/scenarios.json')
                 .then((response) => response.json())
                 .then((json) => {

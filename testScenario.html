@@ -93,16 +93,11 @@
             background-color: var(--secondary-color);
         }
 
-        #explanation {
+        #resolutionContainer {
             background-color: #f1f4f8;
             border-radius: 6px;
             padding: 1rem;
             margin-top: 1rem;
-        }
-
-        #uitleg,
-        #regel {
-            display: block;
             margin-bottom: 0.5rem;
         }
 
@@ -128,12 +123,12 @@
         <div id="controls">
 
             <select onchange="changeScenario()" id="crossingSource">
-                <option value="" disabled selected>Selecteer een scenario</option>
+                <option value="initialValue" disabled selected>Selecteer een scenario</option>
             </select>
 
             <form onsubmit="checkAnswer(event)">
                 <fieldset id="test" disabled>
-                    <legend id="question"><b>Welke weggebruiker gaat eerst?</b></legend>
+                    <legend id="question">Welke weggebruiker gaat eerst?</legend>
                     <div id="answers">
                     </div>
                     <div>
@@ -142,9 +137,9 @@
                     </div>
                 </fieldset>
             </form>
-            <div id="explanation" style="display:none;">
-                <p id="uitleg"></p>
-                <span id="regel"></span>
+            <div id="resolutionContainer">
+                <div id="correctness"></div>
+                <div id="explanation" style="display:none;"></div>
             </div>
             <a href="index.html">
                 < Terug naar Home</a>
@@ -202,11 +197,117 @@
 
         // -------------HELPERS-----------------------------------------------------------------
 
-        function checkAnswer() {
+        let answer = null;
+        let possibilities = null;
+        function questionGenerator() {
+            const questionTypes = ["whogoesfirst", "whichrule"];
+            let questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)]
+
+            // console.log(`questionType=${questionType}`);
+
+            let questionDOM = document.getElementById('question');
+            let answersDOM = document.getElementById('answers');
+            let explanationDOM = document.getElementById('explanation');
+
+            questionDOM.innerHTML = "";
+            answersDOM.innerHTML = "";
+            explanationDOM.innerHTML = "";
+
+            switch (questionType) {
+                case "whogoesfirst":
+                    if (data.actors.length > 2) {
+                        // What is the correct order of going
+                        answer = determineWinnerOrder(data.interactions);
+                        possibilities = generatePermutations(data.actors.length);
+                        // console.log(`Who goes first in order? Answer possibilities: ${possibilities}, correct answer ${answer}`);
+
+                        questionDOM.innerHTML = "Wat is de correcte volgorde?";
+                        explanationDOM.innerHTML = `<p><b>De correcte volgorde is ${answer}.</b><br></p>`;
+
+                    } else {
+                        // Who goes first
+                        answer = data.interactions[0].winner;
+                        possibilities = data.interactions[0].actor_pair;
+                        // console.log(`Who goes first? Answer possiblities: ${possibilities}, correct answer: ${answer}`);
+
+                        questionDOM.innerHTML = "Wie gaat er voor?";
+                        explanationDOM.innerHTML = `<p><b>Weggebruiker ${answer} gaat voor.</b><br> Dit komt door de volgende regel: ${data.interactions[0].reason}</p>`;
+                    }
+
+                    possibilities.forEach((possibility) => {
+                        let tempRadio = document.createElement('input');
+                        tempRadio.type = "radio";
+                        tempRadio.id = possibility;
+                        tempRadio.name = "actors";
+                        tempRadio.value = possibility;
+                        answersDOM.append(tempRadio);
+                        let tempLabel = document.createElement('label');
+                        tempLabel.for = possibility;
+                        tempLabel.innerHTML = `Weggebruiker${possibilities.length > 2 ? "s" : ""} ${possibility}`;
+                        answersDOM.append(tempLabel);
+                        answersDOM.append(document.createElement('br'));
+                    });
+                    break;
+                case "whichrule":
+                    // Why does x go first
+                    if (data.interactions.length == 1) {
+                        answer = data.interactions[0].reason;
+
+                        questionDOM.innerHTML = "Welke regel geldt hier?"
+                        explanationDOM.innerHTML = `<p><b>${answer} geldt hier.</b><br></p>`;
+                    } else {
+                        let randomInteraction = Math.floor(Math.random() * data.interactions.length);
+                        answer = data.interactions[randomInteraction].reason;
+
+                        questionDOM.innerHTML = `Waarom mag weggebruiker ${data.interactions[randomInteraction].winner} hier voor weggebruiker ${data.interactions[randomInteraction].actor_pair.find(num => num !== data.interactions[randomInteraction].winner)} gaan?`
+                        explanationDOM.innerHTML = `<p><b>${answer} geldt hier.</b><br>Daarom mag weggebruiker ${data.interactions[randomInteraction].winner} hier voor gaan.</p>`;
+                    }
+
+                    possibilities = selectRandomElements(answer, config.oorzaken);
+                    // console.log(`Which rule applies? Answer possibilities: ${possibilities}, correct answer: ${answer}`);
+
+                    possibilities.forEach((possibility) => {
+                        let tempRadio = document.createElement('input');
+                        tempRadio.type = "radio";
+                        tempRadio.id = possibility;
+                        tempRadio.name = "actors";
+                        tempRadio.value = possibility;
+                        answersDOM.append(tempRadio);
+                        let tempLabel = document.createElement('label');
+                        tempLabel.for = possibility;
+                        tempLabel.innerHTML = possibility;
+                        answersDOM.append(tempLabel);
+                        answersDOM.append(document.createElement('br'));
+                    });
+                    break;
+                default:
+                    console.error(`questionType ${questionType} is not defined!`);
+            }
+        }
+
+        function checkAnswer(event) {
             event.preventDefault();
-            // TODO: add reloading behaviour
-            // document.getElementById('crossingSource').disabled = false;
-            document.getElementById('explanation').style.display = 'block';
+
+            let givenAnswer = document.querySelector('input[name="actors"]:checked').value;
+            let correctnessDOM = document.getElementById('correctness');
+            let crossingSourceDOM = document.getElementById('crossingSource');
+            let explanationDOM = document.getElementById('explanation');
+            let testDOM = document.getElementById('test');
+
+            correctnessDOM.innerHTML = "";
+            crossingSourceDOM.disabled = false;
+            crossingSourceDOM.value = "initialValue";
+            testDOM.disabled = true;
+
+            // console.log(`givenAnswer: ${givenAnswer}, actual answer: ${answer}`, givenAnswer == answer ? "The given answer is correct!" : "The given answer is incorrect :(");
+            if (givenAnswer == answer) {
+                correctnessDOM.innerHTML += "✔️";
+            } else {
+                correctnessDOM.innerHTML += "❌";
+            }
+
+            // Display correct answer
+            explanationDOM.style.display = 'block';
         }
 
         function changeScenario() {
@@ -217,28 +318,142 @@
                     data = json;
                     crossingImg = loadImage(data.background);
 
-                    let answersDOM = document.getElementById('answers');
-                    data.actors.forEach((actor) => {
-                        let tempRadio = document.createElement('input');
-                        tempRadio.type = "radio";
-                        tempRadio.id = `actor${actor.id}`;
-                        tempRadio.name = "actors";
-                        tempRadio.value = actor.id;
-                        answersDOM.append(tempRadio);
-                        let tempLabel = document.createElement('label');
-                        tempLabel.for = `actor${actor.id}`;
-                        tempLabel.innerHTML = `Weggebruiker ${actor.id}`;
-                        answersDOM.append(tempLabel);
-                        answersDOM.append(document.createElement('br'));
-                    });
-
-                    document.getElementById('uitleg').innerHTML = `Weggebruiker ${data.interactions[0].winner} mag eerst:`;
-                    document.getElementById('regel').innerHTML = `${data.interactions[0].reason}`;
-
+                    questionGenerator();
                 });
 
             document.getElementById('crossingSource').disabled = true;
-            document.getElementById('test').disabled = false;
+
+            // Reset all question values
+            let questionDOM = document.getElementById("question");
+            let answersDOM = document.getElementById('answers');
+            let explanationDOM = document.getElementById('explanation');
+            let testDOM = document.getElementById('test');
+            let correctnessDOM = document.getElementById('correctness');
+
+            questionDOM.innerHTML = "";
+            answersDOM.innerHTML = "";
+            explanationDOM.innerHTML = "";
+            explanationDOM.style.display = "none";
+            correctnessDOM.innerHTML = "";
+            testDOM.disabled = false;
+        }
+
+        function generatePermutations(n) {
+            // Base case: if n is 0 or 1, return the simple permutation
+            if (n <= 1) {
+                return [Array.from({ length: n }, (_, i) => i)];
+            }
+
+            const result = [];
+
+            // Recursive helper function to generate permutations
+            function backtrack(currentPerm, used) {
+                // If current permutation is complete, add it to results
+                if (currentPerm.length === n) {
+                    result.push([...currentPerm]);
+                    return;
+                }
+
+                // Try adding each unused number
+                for (let i = 0; i < n; i++) {
+                    if (!used[i]) {
+                        // Mark as used
+                        used[i] = true;
+                        currentPerm.push(i);
+
+                        // Recursively generate permutations
+                        backtrack(currentPerm, used);
+
+                        // Backtrack
+                        currentPerm.pop();
+                        used[i] = false;
+                    }
+                }
+            }
+
+            // Start the backtracking process
+            backtrack([], new Array(n).fill(false));
+
+            return result;
+        }
+
+        function selectRandomElements(originalValue, otherValues) {
+            // Create a copy of the other values array to avoid modifying the original
+            let availableValues = [...otherValues];
+
+            // Shuffle the available values
+            for (let i = availableValues.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableValues[i], availableValues[j]] = [availableValues[j], availableValues[i]];
+            }
+
+            // Select up to 3 unique values from the shuffled array
+            const selectedValues = availableValues.slice(0, 3);
+
+            // Create the final array with the original value and selected values
+            let resultArray = [originalValue, ...selectedValues];
+
+            // Shuffle the result array to randomize the position of the original value
+            for (let i = resultArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [resultArray[i], resultArray[j]] = [resultArray[j], resultArray[i]];
+            }
+
+            return resultArray;
+        }
+
+        function determineWinnerOrder(interactions) {
+            // Create adjacency lists for wins and losses
+            const wins = {};
+            const losses = {};
+
+            // Initialize tracking for all actors
+            const actors = new Set();
+            interactions.forEach(interaction => {
+                actors.add(interaction.actor_pair[0]);
+                actors.add(interaction.actor_pair[1]);
+
+                const winner = interaction.winner;
+                const [loser] = interaction.actor_pair.filter(a => a !== winner);
+
+                wins[winner] = wins[winner] || [];
+                losses[loser] = losses[loser] || [];
+
+                wins[winner].push(loser);
+                losses[loser].push(winner);
+            });
+
+            // Topological sort
+            const order = [];
+            const visited = new Set();
+
+            function dfs(node) {
+                if (visited.has(node)) return;
+                visited.add(node);
+
+                // Recursively visit nodes this node loses to
+                if (losses[node]) {
+                    losses[node].forEach(loserTo => {
+                        if (!visited.has(loserTo)) {
+                            dfs(loserTo);
+                        }
+                    });
+                }
+
+                // Add to order if not already present
+                if (!order.includes(node)) {
+                    order.push(node);
+                }
+            }
+
+            // Start DFS from each unvisited actor
+            for (let actor of actors) {
+                if (!visited.has(actor)) {
+                    dfs(actor);
+                }
+            }
+
+            return order;
         }
 
         // Draw the destination arrow to indicate where actors want to travel to
@@ -269,22 +484,21 @@
 
         // Define actor image variable to house all actor image objects
         let actorImgs = [];
+        let config = null;
         // Load data before the visualiser is started
         function preload() {
+            fetch('./config.json')
+                .then((response) => response.json())
+                .then((json) => {
+                    config = json;
 
-            // Load all actor images and put the in an image array for easy access
-            actorImgs.push({
-                "type": "voetganger",
-                "img": loadImage('./assets/images/voetganger.png')
-            });
-            actorImgs.push({
-                "type": "fietser",
-                "img": loadImage('./assets/images/fietser.png')
-            });
-            actorImgs.push({
-                "type": "auto1",
-                "img": loadImage('./assets/images/auto1.png')
-            });
+                    config.actors.forEach((actor) => {
+                        actorImgs.push({
+                            "type": actor.identifier,
+                            "img": loadImage(actor.file)
+                        });
+                    });
+                });
 
             fetch('./assets/scenarios/scenarios.json')
                 .then((response) => response.json())

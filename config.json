@@ -1,0 +1,95 @@
+{
+    "kruispunten": [
+        {
+            "name": "Kruispunt 3weg met uitrit",
+            "file": "assets/images/kruispunt_3weg_uitrit.png",
+            "description": "Doorgaande weg met uitrit uit 30-zone"
+        },
+        {
+            "name": "Kruispunt 4weg",
+            "file": "assets/images/kruispunt_4weg.png",
+            "description": "Kruispunt met vier tweezijdige wegen, zebrapad op noordelijke arm van kruispunt"
+        },
+        {
+            "name": "Kruispunt met eenrichtings-inrit",
+            "file": "assets/images/kruispunt_eenrichting_inrit.png",
+            "description": "Kruispunt met drie tweezijdige wegen, eenrichtingstraat uitrit op zuidelijke arm van kruispunt"
+        },
+        {
+            "name": "Kruispunt met onverharde straat",
+            "file": "assets/images/kruispunt_onverhard.png",
+            "description": "Doorgaande weg met onverharde aansluiting"
+        },
+        {
+            "name": "T-splitsing",
+            "file": "assets/images/kruispunt_t.png",
+            "description": "T-splitsing met doorgaande voorrangsweg, tweezijdige weg met voorrangsbord"
+        }
+    ],
+    "actors": [
+        {
+            "name": "Auto type 1",
+            "identifier": "auto1",
+            "file": "assets/images/auto1.png"
+        },
+        {
+            "name": "Auto type 2",
+            "identifier": "auto2",
+            "file": "assets/images/auto2.png"
+        },
+        {
+            "name": "Fietser",
+            "identifier": "fietser",
+            "file": "assets/images/fietser.png"
+        },
+        {
+            "name": "Voetganger",
+            "identifier": "voetganger",
+            "file": "assets/images/voetganger.png"
+        }
+    ],
+    "oorzaken": [
+        "RVV1: voetganger geen bestuurder",
+        "RVV 15.1: rechts voorrang",
+        "RVV 15.2A: onverharde weg",
+        "RVV 15.2B: trams voorrang",
+        "RVV 18.1: rechtd zelfde weg",
+        "RVV 18.2: korte vóór lange bocht",
+        "RVV 18.3: afslaande tram voorrang",
+        "RVV50: voorrangsvoertuig",
+        "RVV54: inenuitrit of erf mano",
+        "RVV80: haaientanden",
+        "RVV80: stopstreep",
+        "RVV62: tekens opvolgen",
+        "RVV16: colonnes/stoeten",
+        "RVV49.1: Overstek blinden/gehand",
+        "RVV49.2: VOP",
+        "RVV49.3: Kolonnes gaan voor",
+        "RVV49.4: VOP rood/glkn voetglicht",
+        "RVV74.2: Geel knip voetglicht",
+        "Bord B1: voorrangsweg",
+        "Bord B2: Einde voorrangsweg",
+        "Bord B3: Voorrangskruispunt",
+        "Bord B4: Voorrangskruispunt zijweg links",
+        "Bord B5: Voorrangskruispunt zijweg rechts",
+        "Bord B6: voorrang kruisende weg",
+        "Bord B7: stop-verleen kr weg voorrang",
+        "RVV68.1a; Rond - groen",
+        "RVV68.1b; Rond - geel",
+        "RVV68.1c; Rond - rood",
+        "RVV68.2; Pijl - groen",
+        "RVV68.2; Pijl - geel",
+        "RVV68.2; Pijl - rood",
+        "RVV68.3; Rood",
+        "RVV68.3; Geel",
+        "RVV68.3; Groen",
+        "RVV68.5; Rood en rechtsaf vrij",
+        "RVV 70.1, BT wit",
+        "RVV 70.1b, BT geel",
+        "RVV 70.1b, BT rood",
+        "RVV74.1;VT Groen",
+        "RVV74.2; VT Groen knipperend",
+        "RVV74.1; VT Rood",
+        "RVV74.2; Vt Geel knipperend"
+    ]
+}

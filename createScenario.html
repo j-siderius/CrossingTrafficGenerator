@@ -336,22 +336,22 @@
 
         // Define actor image variable to house all actor image objects
         let actorImgs = [];
+        let config = null;
         // Load data before the visualiser is started
         function preload() {
 
-            // Load all actor images and put the in an image array for easy access
-            actorImgs.push({
-                "type": "voetganger",
-                "img": loadImage('./assets/images/voetganger.png')
-            });
-            actorImgs.push({
-                "type": "fietser",
-                "img": loadImage('./assets/images/fietser.png')
-            });
-            actorImgs.push({
-                "type": "auto1",
-                "img": loadImage('./assets/images/auto1.png')
-            });
+            fetch('./config.json')
+                .then((response) => response.json())
+                .then((json) => {
+                    config = json;
+
+                    config.actors.forEach((actor) => {
+                        actorImgs.push({
+                            "type": actor.identifier,
+                            "img": loadImage(actor.file)
+                        });
+                    });
+                });
         }
 
         // ------------INTERACTIONS--------------------------------------------

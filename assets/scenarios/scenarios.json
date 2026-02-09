@@ -18,5 +18,9 @@
     {
         "scenario_name": "Doorgaande weg met uitrit 30-zone",
         "file": "668795585386.json"
+    },
+    {
+        "scenario_name": "Vierweg, zebrapad met drie actoren",
+        "file": "035703230651.json"
     }
 ]

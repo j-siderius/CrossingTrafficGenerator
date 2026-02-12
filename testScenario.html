@@ -93,6 +93,11 @@
             background-color: var(--secondary-color);
         }
 
+        button:disabled {
+            background-color: var(--input-border-color);
+            cursor: not-allowed;
+        }
+
         #resolutionContainer {
             background-color: #f1f4f8;
             border-radius: 6px;
@@ -125,8 +130,9 @@
             <select onchange="changeScenario()" id="crossingSource">
                 <option value="initialValue" disabled selected>Selecteer een scenario</option>
             </select>
+            <button onclick="startRandomScenario()" id="randomSource">Kies een willekeurig scenario</button>
 
-            <form onsubmit="checkAnswer(event)">
+            <form onsubmit="checkAnswer(event)" onchange="timingHelper({event: 'answerSelect'})">
                 <fieldset id="test" disabled>
                     <legend id="question"></legend>
                     <div id="answers">
@@ -196,6 +202,38 @@
         }
 
         // -------------HELPERS-----------------------------------------------------------------
+
+        let timings = [];
+        if (localStorage.getItem("crossingTrafficTheory_timings")) timings = JSON.parse(localStorage.getItem("crossingTrafficTheory_timings"));
+        let timing = {};
+        function timingHelper({ event = null, scenario = null, question = null, correctAnswer = null, givenAnswer = null }) {
+            if (event == "start") {
+                timing.scenario = scenario;
+                timing.question = question;
+                timing.correctAnswer = correctAnswer;
+                timing.start = Date.now();
+            } else if (event == "answerSelect") {
+                if (!timing.answerSelects) timing.answerSelects = [];
+                let givenAnswer = document.querySelector('input[name="actors"]:checked').value;
+                timing.answerSelects.push({
+                    "time": Date.now(),
+                    "selectedAnswer": givenAnswer
+                });
+            } else if (event == "finish") {
+                timing.finish = Date.now();
+                timing.totalTime = timing.finish - timing.start;
+                // timing.answer = document.querySelector('input[name="actors"]:checked').value;
+                timing.answer = givenAnswer;
+                timing.changedAnswers = timing.answerSelects.length;
+                timings.push(timing);
+                timing = {};
+
+                // Add the stored timings into cookies for retention
+                localStorage.setItem("crossingTrafficTheory_timings", JSON.stringify(timings));
+            } else {
+                console.error(`Event ${event} was not recognised by the timingHelper`);
+            }
+        }
 
         let answer = null;
         let possibilities = null;
@@ -283,6 +321,8 @@
                 default:
                     console.error(`questionType ${questionType} is not defined!`);
             }
+
+            timingHelper({ event: "start", correctAnswer: answer, question: questionDOM.innerHTML, scenario: document.getElementById('crossingSource').value });
         }
 
         function checkAnswer(event) {
@@ -291,13 +331,17 @@
             let givenAnswer = document.querySelector('input[name="actors"]:checked').value;
             let correctnessDOM = document.getElementById('correctness');
             let crossingSourceDOM = document.getElementById('crossingSource');
+            let randomSourceDOM = document.getElementById('randomSource');
             let explanationDOM = document.getElementById('explanation');
             let testDOM = document.getElementById('test');
 
             correctnessDOM.innerHTML = "";
             crossingSourceDOM.disabled = false;
+            randomSourceDOM.disabled = false;
             crossingSourceDOM.value = "initialValue";
             testDOM.disabled = true;
+
+            timingHelper({ event: "finish", givenAnswer: givenAnswer });
 
             // console.log(`givenAnswer: ${givenAnswer}, actual answer: ${answer}`, givenAnswer == answer ? "The given answer is correct!" : "The given answer is incorrect :(");
             if (givenAnswer == answer) {
@@ -322,6 +366,7 @@
                 });
 
             document.getElementById('crossingSource').disabled = true;
+            document.getElementById('randomSource').disabled = true;
 
             // Reset all question values
             let questionDOM = document.getElementById("question");
@@ -336,6 +381,16 @@
             explanationDOM.style.display = "none";
             correctnessDOM.innerHTML = "";
             testDOM.disabled = false;
+        }
+
+        function startRandomScenario() {
+            fetch('./assets/scenarios/scenarios.json')
+                .then((response) => response.json())
+                .then((json) => {
+                    let chosenScenarioFile = json[Math.floor(Math.random() * json.length)].file;
+                    document.getElementById('crossingSource').value = chosenScenarioFile;
+                    changeScenario();
+                });
         }
 
         function generatePermutations(n) {

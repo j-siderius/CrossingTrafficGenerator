@@ -1,11 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
     <title>Voortgang bekijken</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #f4f6f7;
+            --text-color: #2c3e50;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+    </style>
 </head>
+
+<div id="rawResults"></div>
+
 <body>
-    
+
+    <script>
+        let timings = [];
+        if (localStorage.getItem("crossingTrafficTheory_timings")) timings = JSON.parse(localStorage.getItem("crossingTrafficTheory_timings"));
+        else console.error("No stored test items found in localStorage!");
+
+        let rawResultsDOM = document.getElementById('rawResults');
+        timings.forEach(timing => {
+            rawResultsDOM.innerHTML += `${JSON.stringify(timing)} <br>`;
+        });
+    </script>
 </body>
+
 </html>

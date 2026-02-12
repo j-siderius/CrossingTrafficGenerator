@@ -60,7 +60,8 @@
             overflow: auto;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--input-border-color);
@@ -102,14 +103,16 @@
                 height: auto;
             }
 
-            #actors, #canvas {
+            #actors,
+            #canvas {
                 width: 100%;
                 height: auto;
             }
         }
 
         /* Additional styling for output-like elements */
-        #output, #interactions-container {
+        #output,
+        #interactions-container {
             font-family: 'Courier New', Courier, monospace;
             background-color: #f1f4f8;
             border-radius: 6px;
@@ -120,10 +123,117 @@
             overflow-y: auto;
             resize: vertical;
         }
+
+        /* Modal styling */
+        .modal {
+            display: block;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1;
+            /* Sit on top */
+            padding-top: 100px;
+            /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%;
+            /* Full width */
+            height: 100%;
+            /* Full height */
+            overflow: auto;
+            /* Enable scroll if needed */
+            background-color: rgb(0, 0, 0);
+            /* Fallback color */
+            background-color: rgba(0, 0, 0, 0.4);
+            /* Black w/ opacity */
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .modal img {
+            width: 100%
+        }
+
+        .modal p {
+            text-align: center;
+        }
+
+        .modal button {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .modal td {
+            padding: 1em;
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Contains the instruction modal -->
+    <div id="myModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <!-- <p>Some text in the Modal..</p> -->
+            <table>
+                <tr>
+                    <td><img src="assets/images/tutorial_setup.png" alt="" class="modal-image"></td>
+                    <td><img src="assets/images/tutorial_actor.png" alt="" class="modal-image"></td>
+                    <td><img src="assets/images/tutorial_matrix.png" alt="" class="modal-image"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>Begin door het scenario een naam te geven (in het tekstveld 'Scenario naam'). Selecteer
+                            daarna het type kruispunt waar het scenario zich afspeelt (via de dropdown).</p>
+                    </td>
+                    <td>
+                        <p>Selecteer het type actor en klik op 'Plaats actor'. De actor kan nu met de muis
+                            gepositioneerd worden, klik om te plaatsen. Na het vastleggen van de positie kan de rotatie
+                            van de actor worden bepaald, klik op vast te leggen. Als laatste wordt het doel van de actor
+                            vastgelegd, klik ook om deze vast te leggen. Deze stap herhalen tot alle gewenste actoren
+                            geplaatst zijn.</p>
+                    </td>
+                    <td>
+                        <p>Als laatste worden alle interacties tussen de actoren in het scenario bepaald. In de matrix
+                            kan de winnaar en de reden van voorrang aangegeven worden (via de dropdowns). Doe dit voor
+                            alle interacties. Hierna kan het scenario opgeslagen of gekopieerd worden.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <button onclick="changeModal()">Sluiten</button>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
     <!-- Contains the scenario visualiser -->
     <div id="canvas"></div>
 
@@ -132,7 +242,7 @@
         <div id="controls">
             <input type="text" id="scenarioName" minlength="4" placeholder="Scenario naam"
                 onchange="changeScenarioName()" />
-            
+
             <select onchange="changeCrossingSource()" id="crossingSource">
                 <option value="" disabled selected>Selecteer type kruispunt</option>
                 <option value="kruispunt_4weg">Kruispunt 4-weg met zebrapad</option>
@@ -148,18 +258,19 @@
                 <option value="fietser">Fietser</option>
                 <option value="auto1">Auto</option>
             </select>
-            
+
             <button onclick="changeActorPlace()" id="actorSet">Plaats actor</button>
 
             <div class="button-group">
-                <button onclick="navigator.clipboard.writeText(JSON.stringify(data, null, 2))">Kopiëer JSON van kruispunt</button>
+                <button onclick="navigator.clipboard.writeText(JSON.stringify(data, null, 2))">Kopiëer JSON van
+                    kruispunt</button>
                 <button onclick="downloadJSON()">Download JSON van kruispunt</button>
             </div>
 
             <!-- Contains the interactions table -->
             <div id="interactions-container" onchange="changedInteractions()"></div>
 
-            
+
             <a href="index.html">
                 < Terug naar Home</a>
         </div>
@@ -178,7 +289,7 @@
         function downloadJSON() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
             let downloadAnchorNode = document.createElement('a');
-            let downloadName = String(Math.floor(Math.random()*999999999999)).padStart(12, '0');
+            let downloadName = String(Math.floor(Math.random() * 999999999999)).padStart(12, '0');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", downloadName + ".json");
             document.body.appendChild(downloadAnchorNode); // required for firefox
@@ -294,6 +405,14 @@
         }
 
         // -------------HELPERS-----------------------------------------------------------------
+
+        // Disable the modal with instructions
+        function changeModal() {
+            let modalDOM = document.getElementById('myModal');
+            let visibility = modalDOM.style.display;
+            if (visibility != "none") modalDOM.style.display = "none";
+            else modalDOM.style.display = "block";
+        }
 
         // Draw the destination arrow to indicate where actors want to travel to
         function drawArrow(startX, startY, endX, endY) {

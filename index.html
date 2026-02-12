@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/images/favicon_highway.png" type="image/png">
-    <title>Crossing Theory Dashboard</title>
+    <title>Kruispunt theorie Dashboard</title>
     <style>
         :root {
             --primary-color: #3498db;
@@ -42,7 +42,7 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
         }
 
@@ -91,16 +91,20 @@
 <body>
     <div class="dashboard">
         <header class="dashboard-header">
-            <h1>Crossing Theory Application</h1>
+            <h1>Kruispunten scenarios</h1>
         </header>
         <div class="dashboard-grid">
             <div class="dashboard-card" data-link="createScenario.html">
                 <div class="icon">📝</div>
-                <a href="createScenario.html">Create a Crossing Scenario</a>
+                <a href="createScenario.html">Kruispunt-scenario maken</a>
             </div>
             <div class="dashboard-card" data-link="testScenario.html">
                 <div class="icon">🚦</div>
-                <a href="testScenario.html">Test a Crossing Scenario</a>
+                <a href="testScenario.html">Scenario's testen</a>
+            </div>
+            <div class="dashboard-card" data-link="testScenario.html">
+                <div class="icon">📈</div>
+                <a href="evaluateProgress.html">Voortgang bekijken</a>
             </div>
         </div>
     </div>

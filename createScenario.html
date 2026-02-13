@@ -124,69 +124,139 @@
             resize: vertical;
         }
 
-        /* Modal styling */
+        /* Modal Base Styling */
         .modal {
-            display: block;
-            /* Hidden by default */
+            display: none;
             position: fixed;
-            /* Stay in place */
-            z-index: 1;
-            /* Sit on top */
-            padding-top: 100px;
-            /* Location of the box */
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
-            /* Full width */
             height: 100%;
-            /* Full height */
             overflow: auto;
-            /* Enable scroll if needed */
-            background-color: rgb(0, 0, 0);
-            /* Fallback color */
-            background-color: rgba(0, 0, 0, 0.4);
-            /* Black w/ opacity */
+            background-color: rgba(0, 0, 0, 0.5);
+
+            /* Flexbox for perfect centering */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Modal Content */
         .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            width: 70%;
+            max-width: 1200px;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        .modal img {
-            width: 100%
+        /* Modal Table Specific Styling */
+        .modal table {
+            width: 100%;
+            border-spacing: 1rem;
+            table-layout: fixed;
         }
 
-        .modal p {
+        .modal table tr:first-child td {
             text-align: center;
         }
 
+        .modal table tr:nth-child(2) td {
+            vertical-align: top;
+            padding: 1rem;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-image:hover {
+            transform: scale(1.05);
+        }
+
+        .modal table td p {
+            color: var(--text-color);
+            line-height: 1.6;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
         .modal button {
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .modal td {
-            padding: 1em;
-        }
-
-        /* The Close Button */
-        .close {
-            color: #aaaaaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #000;
-            text-decoration: none;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 1rem auto;
+            display: block;
+        }
+
+        .modal button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1024px) {
+            .modal-content {
+                width: 90%;
+                padding: 1rem;
+            }
+
+            .modal table {
+                border-spacing: 0.5rem;
+            }
+
+            .modal table td {
+                display: block;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Backlink Styling */
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(46, 204, 113, 0.1);
+            transform: translateX(-5px);
+        }
+
+        a::before {
+            content: '←';
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
@@ -271,8 +341,7 @@
             <div id="interactions-container" onchange="changedInteractions()"></div>
 
 
-            <a href="index.html">
-                < Terug naar Home</a>
+            <a href="index.html">Terug naar Dashboard</a>
         </div>
     </div>
 

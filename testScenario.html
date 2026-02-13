@@ -116,6 +116,32 @@
                 width: 100%;
             }
         }
+
+        /* Backlink Styling */
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(46, 204, 113, 0.1);
+            transform: translateX(-5px);
+        }
+
+        a::before {
+            content: '←';
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 
@@ -147,8 +173,7 @@
                 <div id="correctness"></div>
                 <div id="explanation" style="display:none;"></div>
             </div>
-            <a href="index.html">
-                < Terug naar Home</a>
+            <a href="index.html">Terug naar Dashboard</a>
         </div>
 
     </div>

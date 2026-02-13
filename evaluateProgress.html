@@ -12,13 +12,9 @@
             --secondary-color: #2ecc71;
             --background-color: #f4f6f7;
             --text-color: #2c3e50;
+            --table-header-color: #f1f4f8;
+            --table-border-color: #e0e4e8;
             --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -26,23 +22,218 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
+            padding: 1.5rem;
+        }
+
+        #results,
+        #rawResults {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        table th,
+        table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--table-border-color);
+        }
+
+        table th {
+            background-color: var(--table-header-color);
+            color: var(--text-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tr:hover {
+            background-color: rgba(46, 204, 113, 0.05);
+            transition: background-color 0.3s ease;
+        }
+
+        #evaluatedTable th {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+
+        #rawTable th {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.875rem;
+            }
+
+            table th,
+            table td {
+                padding: 0.75rem;
+            }
+        }
+
+        /* Backlink Styling */
+        a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(46, 204, 113, 0.1);
+            transform: translateX(-5px);
+        }
+
+        a::before {
+            content: '←';
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 
-<div id="rawResults"></div>
-
 <body>
+
+    <a href="index.html">Terug naar Dashboard</a>
+
+    <h3>Voortgang</h3>
+
+    <div id="results">
+        <table id="evaluatedTable">
+            <tr>
+                <th>Type vraag</th>
+                <th>Aantal vragen gedaan</th>
+                <th>Percentage goed</th>
+                <th>Gemiddelde tijd (seconden)</th>
+            </tr>
+        </table>
+    </div>
+
+    <h3>Ruwe data</h3>
+
+    <div id="rawResults">
+        <table id="rawTable">
+            <tr>
+                <th>Scenario</th>
+                <th>Vraag</th>
+                <th>Tijd (seconden)</th>
+                <th>Antwoord veranderd (aantal keren)</th>
+                <th>Antwoord</th>
+                <th>Resultaat</th>
+            </tr>
+
+        </table>
+    </div>
+
+    <a href="index.html">Terug naar Dashboard</a>
 
     <script>
         let timings = [];
         if (localStorage.getItem("crossingTrafficTheory_timings")) timings = JSON.parse(localStorage.getItem("crossingTrafficTheory_timings"));
         else console.error("No stored test items found in localStorage!");
 
-        let rawResultsDOM = document.getElementById('rawResults');
+        let rawResultsTable = document.getElementById('rawTable');
+        let evaluatedResults = {
+            "correctorder": {
+                "name": "Correcte volgorde bepalen",
+                "nrquestions": null,
+                "nrcorrect": null,
+                "times": []
+            },
+            "whogoesfirst": {
+                "name": "Wie gaat eerst",
+                "nrquestions": null,
+                "nrcorrect": null,
+                "times": []
+            },
+            "whydoesxgofirst": {
+                "name": "Waarom gaat x voor",
+                "nrquestions": null,
+                "nrcorrect": null,
+                "times": []
+            },
+            "whichrule": {
+                "name": "Welke regel geldt",
+                "nrquestions": null,
+                "nrcorrect": null,
+                "times": []
+            }
+        };
+
         timings.forEach(timing => {
-            rawResultsDOM.innerHTML += `${JSON.stringify(timing)} <br>`;
+            let tempRow = document.createElement('tr');
+            tempRow.innerHTML += `<td>${timing.scenario}</td>`;
+            tempRow.innerHTML += `<td>${timing.question}</td>`;
+            tempRow.innerHTML += `<td>${timing.totalTime / 1000}</td>`;
+            tempRow.innerHTML += `<td>${timing.changedAnswers - 1}</td>`;
+            tempRow.innerHTML += `<td>${timing.answer}</td>`;
+            tempRow.innerHTML += `<td>${timing.answer == timing.correctAnswer ? "Correct" : "Incorrect: " + timing.correctAnswer}</td>`;
+            rawResultsTable.append(tempRow);
+
+            if (timing.question == "Wat is de correcte volgorde?") {
+                evaluatedResults.correctorder.nrquestions += 1;
+                if (timing.answer == timing.correctAnswer) evaluatedResults.correctorder.nrcorrect += 1;
+                evaluatedResults.correctorder.times.push(timing.totalTime);
+            } else if (timing.question == "Wie gaat er voor?") {
+                evaluatedResults.whogoesfirst.nrquestions += 1;
+                if (timing.answer == timing.correctAnswer) evaluatedResults.whogoesfirst.nrcorrect += 1;
+                evaluatedResults.whogoesfirst.times.push(timing.totalTime);
+            } else if (timing.question == "Welke regel geldt hier?") {
+                evaluatedResults.whichrule.nrquestions += 1;
+                if (timing.answer == timing.correctAnswer) evaluatedResults.whichrule.nrcorrect += 1;
+                evaluatedResults.whichrule.times.push(timing.totalTime);
+            } else if (timing.question.match(/Waarom mag weggebruiker \d hier voor weggebruiker \d gaan\?/g).length == 1) {
+                evaluatedResults.whydoesxgofirst.nrquestions += 1;
+                if (timing.answer == timing.correctAnswer) evaluatedResults.whydoesxgofirst.nrcorrect += 1;
+                evaluatedResults.whydoesxgofirst.times.push(timing.totalTime);
+            } else {
+                console.error(`Question type ${timing.question} not recognised.`);
+            }
         });
+
+        let evaluatedResultsTable = document.getElementById('evaluatedTable');
+        for (let name in evaluatedResults) {
+            let result = evaluatedResults[name];
+            let tempRow = document.createElement('tr');
+
+            tempRow.innerHTML += `<td>${result.name}</td>`;
+            tempRow.innerHTML += `<td>${result.nrquestions}</td>`;
+            tempRow.innerHTML += `<td>${result.nrcorrect / result.nrquestions * 100}%</td>`;
+            tempRow.innerHTML += `<td>${(arraySum(result.times) / result.times.length) / 1000}</td>`;
+            evaluatedResultsTable.append(tempRow);
+        }
+
+        // <th>Type vraag</th>
+        //     <th>Aantal vragen gedaan</th>
+        //     <th>Percentage goed</th>
+        //     <th>Gemiddelde tijd (seconden)</th>
+
+        function arraySum(arr) {
+            let sum = 0;
+            arr.forEach((num) => { sum += num; })
+            return sum;
+        }
     </script>
 </body>
 

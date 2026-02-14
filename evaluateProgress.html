@@ -110,6 +110,24 @@
             display: inline-block;
             margin-right: 0.5rem;
         }
+
+
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
     </style>
 </head>
 
@@ -146,93 +164,150 @@
         </table>
     </div>
 
+    <div class="button-group">
+        <button onclick="navigator.clipboard.writeText(JSON.stringify(timings, null, 2))">Kopiëer JSON van
+            voortgang</button>
+        <button onclick="downloadJSON()">Download JSON van voortgang</button>
+        <button onclick="document.getElementById('jsonFileInput').click();">Upload JSON van voortgang</button>
+        <input type="file" id="jsonFileInput" accept=".json" style="display:none;" onchange="uploadJSON(event)" />
+        <button onclick="deleteProgress()">Verwijder voortgang uit database</button>
+    </div>
+
     <a href="index.html">Terug naar Dashboard</a>
 
     <script>
         let timings = [];
-        if (localStorage.getItem("crossingTrafficTheory_timings")) timings = JSON.parse(localStorage.getItem("crossingTrafficTheory_timings"));
-        else console.error("No stored test items found in localStorage!");
-
-        let rawResultsTable = document.getElementById('rawTable');
-        let evaluatedResults = {
-            "correctorder": {
-                "name": "Correcte volgorde bepalen",
-                "nrquestions": null,
-                "nrcorrect": null,
-                "times": []
-            },
-            "whogoesfirst": {
-                "name": "Wie gaat eerst",
-                "nrquestions": null,
-                "nrcorrect": null,
-                "times": []
-            },
-            "whydoesxgofirst": {
-                "name": "Waarom gaat x voor",
-                "nrquestions": null,
-                "nrcorrect": null,
-                "times": []
-            },
-            "whichrule": {
-                "name": "Welke regel geldt",
-                "nrquestions": null,
-                "nrcorrect": null,
-                "times": []
-            }
-        };
-
-        timings.forEach(timing => {
-            let tempRow = document.createElement('tr');
-            tempRow.innerHTML += `<td>${timing.scenario}</td>`;
-            tempRow.innerHTML += `<td>${timing.question}</td>`;
-            tempRow.innerHTML += `<td>${timing.totalTime / 1000}</td>`;
-            tempRow.innerHTML += `<td>${timing.changedAnswers - 1}</td>`;
-            tempRow.innerHTML += `<td>${timing.answer}</td>`;
-            tempRow.innerHTML += `<td>${timing.answer == timing.correctAnswer ? "Correct" : "Incorrect: " + timing.correctAnswer}</td>`;
-            rawResultsTable.append(tempRow);
-
-            if (timing.question == "Wat is de correcte volgorde?") {
-                evaluatedResults.correctorder.nrquestions += 1;
-                if (timing.answer == timing.correctAnswer) evaluatedResults.correctorder.nrcorrect += 1;
-                evaluatedResults.correctorder.times.push(timing.totalTime);
-            } else if (timing.question == "Wie gaat er voor?") {
-                evaluatedResults.whogoesfirst.nrquestions += 1;
-                if (timing.answer == timing.correctAnswer) evaluatedResults.whogoesfirst.nrcorrect += 1;
-                evaluatedResults.whogoesfirst.times.push(timing.totalTime);
-            } else if (timing.question == "Welke regel geldt hier?") {
-                evaluatedResults.whichrule.nrquestions += 1;
-                if (timing.answer == timing.correctAnswer) evaluatedResults.whichrule.nrcorrect += 1;
-                evaluatedResults.whichrule.times.push(timing.totalTime);
-            } else if (timing.question.match(/Waarom mag weggebruiker \d hier voor weggebruiker \d gaan\?/g).length == 1) {
-                evaluatedResults.whydoesxgofirst.nrquestions += 1;
-                if (timing.answer == timing.correctAnswer) evaluatedResults.whydoesxgofirst.nrcorrect += 1;
-                evaluatedResults.whydoesxgofirst.times.push(timing.totalTime);
-            } else {
-                console.error(`Question type ${timing.question} not recognised.`);
-            }
-        });
-
-        let evaluatedResultsTable = document.getElementById('evaluatedTable');
-        for (let name in evaluatedResults) {
-            let result = evaluatedResults[name];
-            let tempRow = document.createElement('tr');
-
-            tempRow.innerHTML += `<td>${result.name}</td>`;
-            tempRow.innerHTML += `<td>${result.nrquestions}</td>`;
-            tempRow.innerHTML += `<td>${result.nrcorrect / result.nrquestions * 100}%</td>`;
-            tempRow.innerHTML += `<td>${(arraySum(result.times) / result.times.length) / 1000}</td>`;
-            evaluatedResultsTable.append(tempRow);
+        if (localStorage.getItem("crossingTrafficTheory_timings")) {
+            timings = JSON.parse(localStorage.getItem("crossingTrafficTheory_timings"));
+            populateTables();
+        } else {
+            console.error("No stored test items found in localStorage!");
         }
 
-        // <th>Type vraag</th>
-        //     <th>Aantal vragen gedaan</th>
-        //     <th>Percentage goed</th>
-        //     <th>Gemiddelde tijd (seconden)</th>
+        function populateTables() {
+            let rawResultsTable = document.getElementById('rawTable');
+            let evaluatedResults = {
+                "correctorder": {
+                    "name": "Correcte volgorde bepalen",
+                    "nrquestions": null,
+                    "nrcorrect": null,
+                    "times": []
+                },
+                "whogoesfirst": {
+                    "name": "Wie gaat eerst",
+                    "nrquestions": null,
+                    "nrcorrect": null,
+                    "times": []
+                },
+                "whydoesxgofirst": {
+                    "name": "Waarom gaat x voor",
+                    "nrquestions": null,
+                    "nrcorrect": null,
+                    "times": []
+                },
+                "whichrule": {
+                    "name": "Welke regel geldt",
+                    "nrquestions": null,
+                    "nrcorrect": null,
+                    "times": []
+                }
+            };
+
+            timings.forEach(timing => {
+                let tempRow = document.createElement('tr');
+                tempRow.innerHTML += `<td>${timing.scenario}</td>`;
+                tempRow.innerHTML += `<td>${timing.question}</td>`;
+                tempRow.innerHTML += `<td>${timing.totalTime / 1000}</td>`;
+                tempRow.innerHTML += `<td>${timing.changedAnswers - 1}</td>`;
+                tempRow.innerHTML += `<td>${timing.answer}</td>`;
+                tempRow.innerHTML += `<td>${timing.answer == timing.correctAnswer ? "Correct" : "Incorrect: " + timing.correctAnswer}</td>`;
+                rawResultsTable.append(tempRow);
+
+                if (timing.question == "Wat is de correcte volgorde?") {
+                    evaluatedResults.correctorder.nrquestions += 1;
+                    if (timing.answer == timing.correctAnswer) evaluatedResults.correctorder.nrcorrect += 1;
+                    evaluatedResults.correctorder.times.push(timing.totalTime);
+                } else if (timing.question == "Wie gaat er voor?") {
+                    evaluatedResults.whogoesfirst.nrquestions += 1;
+                    if (timing.answer == timing.correctAnswer) evaluatedResults.whogoesfirst.nrcorrect += 1;
+                    evaluatedResults.whogoesfirst.times.push(timing.totalTime);
+                } else if (timing.question == "Welke regel geldt hier?") {
+                    evaluatedResults.whichrule.nrquestions += 1;
+                    if (timing.answer == timing.correctAnswer) evaluatedResults.whichrule.nrcorrect += 1;
+                    evaluatedResults.whichrule.times.push(timing.totalTime);
+                } else if (timing.question.match(/Waarom mag weggebruiker \d hier voor weggebruiker \d gaan\?/g).length == 1) {
+                    evaluatedResults.whydoesxgofirst.nrquestions += 1;
+                    if (timing.answer == timing.correctAnswer) evaluatedResults.whydoesxgofirst.nrcorrect += 1;
+                    evaluatedResults.whydoesxgofirst.times.push(timing.totalTime);
+                } else {
+                    console.error(`Question type ${timing.question} not recognised.`);
+                }
+            });
+
+            let evaluatedResultsTable = document.getElementById('evaluatedTable');
+            for (let name in evaluatedResults) {
+                let result = evaluatedResults[name];
+                let tempRow = document.createElement('tr');
+
+                tempRow.innerHTML += `<td>${result.name}</td>`;
+                tempRow.innerHTML += `<td>${result.nrquestions}</td>`;
+                tempRow.innerHTML += `<td>${result.nrcorrect / result.nrquestions * 100}%</td>`;
+                tempRow.innerHTML += `<td>${(arraySum(result.times) / result.times.length) / 1000}</td>`;
+                evaluatedResultsTable.append(tempRow);
+            }
+        }
 
         function arraySum(arr) {
             let sum = 0;
             arr.forEach((num) => { sum += num; })
             return sum;
+        }
+
+        // Builds a JSON file from the scenario data, names it using an MD5 hashing function to generate unique name, then downloads
+        function downloadJSON() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(timings));
+            let downloadAnchorNode = document.createElement('a');
+            let downloadName = "kruispuntVoortgang" + String(Math.floor(Math.random() * 9999)).padStart(4, '0');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", downloadName + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function uploadJSON(event) {
+            // Check if a file was selected
+            if (event.target.files.length > 0) {
+                const file = event.target.files[0];
+
+                // Create a FileReader to read the JSON file
+                const reader = new FileReader();
+
+                // Event listener for when the file is loaded
+                reader.onload = function (e) {
+                    try {
+                        // Parse the file content as JSON
+                        const jsonData = JSON.parse(e.target.result);
+
+                        // console.log('Parsed JSON:', jsonData);
+                        timings = jsonData;
+                        localStorage.setItem("crossingTrafficTheory_timings", JSON.stringify(timings));
+                        populateTables();
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        alert('Invalid JSON file');
+                    }
+                };
+
+                // Read the file as text
+                reader.readAsText(file);
+            }
+        }
+
+        function deleteProgress() {
+            if (window.confirm("Wilt u zeker de voortgang uit de (browser) database verwijderen?")) {
+                localStorage.removeItem("crossingTrafficTheory_timings");
+            }
         }
     </script>
 </body>

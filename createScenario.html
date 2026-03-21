@@ -385,14 +385,19 @@
 
         // Object for temporary actor data during placement
         let tempActor = {};
+        let borderBuffer = 10;
         function mousePressed() {
             // If the mouse is pressed in the visualiser, and the actor placing flow is active
             if (placeActor == "place") {
                 // Place the actor and store the x,y values of the actor
                 tempActor.type = document.getElementById('actorType').value;
-                tempActor.x = mouseX;
-                tempActor.y = mouseY;
-                placeActor = "rotate";
+                if (mouseX > borderBuffer && mouseX < (width-borderBuffer) && mouseY > borderBuffer && mouseY < (height-borderBuffer)) {
+                    tempActor.x = mouseX;
+                    tempActor.y = mouseY;
+                    placeActor = "rotate";
+                } else {
+                    console.error("You can only place an actor inside of the canvas")
+                }
             } else if (placeActor == "rotate") {
                 // Lock the actor rotation and store the angle of the actor
                 tempActor.rotation = map(mouseY, 0, height, 0, 360);

@@ -391,7 +391,7 @@
             if (placeActor == "place") {
                 // Place the actor and store the x,y values of the actor
                 tempActor.type = document.getElementById('actorType').value;
-                if (mouseX > borderBuffer && mouseX < (width-borderBuffer) && mouseY > borderBuffer && mouseY < (height-borderBuffer)) {
+                if (mouseX > borderBuffer && mouseX < (width - borderBuffer) && mouseY > borderBuffer && mouseY < (height - borderBuffer)) {
                     tempActor.x = mouseX;
                     tempActor.y = mouseY;
                     placeActor = "rotate";
@@ -400,7 +400,10 @@
                 }
             } else if (placeActor == "rotate") {
                 // Lock the actor rotation and store the angle of the actor
-                tempActor.rotation = map(mouseY, 0, height, 0, 360);
+                // tempActor.rotation = map(mouseY, 0, height, 0, 360);
+                // rotate(map(mouseY, 0, height, 0, 360));
+                let angle = atan2(mouseY - tempActor.y, mouseX - tempActor.y);
+                tempActor.rotation = angle;
                 placeActor = "destination";
             } else if (placeActor == "destination") {
                 // Store the actor type, location, rotation and destination point
@@ -440,11 +443,15 @@
                 let tempImg = actorImgs.find((item) => item.type == tempActor.type).img;
                 push();
                 translate(tempActor.x, tempActor.y);
-                rotate(map(mouseY, 0, height, 0, 360));
+                // rotate(map(mouseY, 0, height, 0, 360));
+                let angle = atan2(mouseY - tempActor.y, mouseX - tempActor.y);
+                rotate(angle);
                 image(tempImg, -tempImg.width / 2, -tempImg.height / 2);
                 pop();
+
+                image(rotateCursor, mouseX, mouseY, 25, 25);
             } else if (placeActor == "destination") {
-                drawArrow(tempActor.x, tempActor.y, mouseX, mouseY);
+                drawArrow(tempActor.x, tempActor.y, mouseX, mouseY, tempActor.rotation);
 
                 let tempImg = actorImgs.find((item) => item.type == tempActor.type).img;
                 push();
@@ -457,7 +464,7 @@
             // Draw all the actors in the data object
             data.actors.forEach(actor => {
                 // Draw the destination arrow for the actor
-                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y);
+                if (actor.destination) drawArrow(actor.x, actor.y, actor.destination.x, actor.destination.y, actor.rotation);
 
                 // Find the corresponding actor image, then place it according the the position and rotation
                 let tempImg = actorImgs.find((item) => item.type == actor.type).img;
@@ -489,28 +496,119 @@
         }
 
         // Draw the destination arrow to indicate where actors want to travel to
-        function drawArrow(startX, startY, endX, endY) {
-            // Calculate the angle and length of the arrow
-            let angle = atan2(endY - startY, endX - startX);
-            let distance = dist(startX, startY, endX, endY);
+        function drawArrow(startX, startY, destX, destY, angle2) {
+            // // Calculate the angle and length of the arrow
+            let rotation = atan2(destY - startY, destX - startX);
+            let straightLine = false;
 
             // Draw the angle at the start coordinates
-            push();
-            translate(startX, startY);
-            rotate(angle);
+            offsetX = sqrt(startX + destX) * 10;
+            offsetY = sqrt(startY + destY) * 10;
 
-            stroke(0);
+            if ((rotation > -10 && rotation < 10) || (rotation > 80 && rotation < 100) || (rotation > 170 || rotation < -170) || (rotation > -100 && rotation < -80)) {
+                // straight
+                c1x = startX;
+                c1y = startY;
+                c2x = destX;
+                c2y = destY;
+                straightLine = true;
+            } else if (destX > startX) {
+                if (destY > startY) {
+                    // destX > x && destY > y
+                    if (rotation <= 45 && rotation > -135) {
+                        // to the right
+                        // console.log(">,> right");
+                        c1x = startX - offsetX /*destX*/;
+                        c1y = startY;
+                        c2x = destX;
+                        c2y = destY + offsetY /*y*/;
+                    } else {
+                        // to the left
+                        // console.log(">,> left");
+                        c1x = startX;
+                        c1y = startY - offsetY /*destY*/;
+                        c2x = destX + offsetX /*x*/;
+                        c2y = destY;
+                    }
+                } else {
+                    // destX > x && destY < y
+                    if (rotation <= -45 || rotation > 135) {
+                        // to the left
+                        // console.log(">,< left");
+                        c1x = startX;
+                        c1y = startY + offsetY /*destY*/;
+                        c2x = destX + offsetX /*x*/;
+                        c2y = destY;
+                    } else {
+                        // to the right
+                        // console.log(">,< right");
+                        c1x = startX - offsetX /*destX*/;
+                        c1y = startY;
+                        c2x = destX;
+                        c2y = destY - offsetY /*y*/;
+                    }
+                }
+            } else {
+                if (destY > startY) {
+                    // destX < x && destY > y
+                    if (rotation <= 135 && rotation > -45) {
+                        // to the right
+                        // console.log("<,> right");
+                        c1x = startX;
+                        c1y = startY - offsetY /*destY*/;
+                        c2x = destX - offsetX /*x*/;
+                        c2y = destY;
+                    } else {
+                        // to the left
+                        // console.log("<,> left");
+                        c1x = startX + offsetX /*destX*/;
+                        c1y = startY;
+                        c2x = destX;
+                        c2y = destY + offsetY /*y*/;
+                    }
+                } else {
+                    // destX < x &&  destY < y
+                    if (rotation <= -135 || rotation > 45) {
+                        // to the left
+                        // console.log("<,< left");
+                        c1x = startX + offsetX /*destX*/;
+                        c1y = startY;
+                        c2x = destX;
+                        c2y = destY - offsetY /*y*/;
+                    } else {
+                        // to the right
+                        // console.log("<,< right");
+                        c1x = startX;
+                        c1y = startY + offsetY /*destY*/;
+                        c2x = destX - offsetX /*x*/;
+                        c2y = destY;
+                    }
+                }
+            }
+
+            // Draw a black spline curve.
+            noFill();
             strokeWeight(2);
-            line(0, 0, distance, 0);
+            stroke(0);
+            curve(c1x, c1y, startX, startY, destX, destY, c2x, c2y);
 
-            // Draw the arrow head at the destination coordinates using the calculated vector
+            // Triangle to finish arrow
+            let size = 10;
+            const deltaX = c2x - destX;
+            const deltaY = c2y - destY;
+            const angleRad = Math.atan2(deltaY, deltaX);
+            const angleDeg = angleRad * (180 / Math.PI);
+            let angle = (angleDeg + 360) % 360;
+            stroke(0);
             fill(0);
-            noStroke();
-            beginShape();
-            vertex(distance, 0);
-            vertex(distance - 10, -5);
-            vertex(distance - 10, 5);
-            endShape(CLOSE);
+            push();
+            translate(destX, destY);
+            rotate(angle);
+            if (!straightLine) {
+                triangle(0, 0, -size, -size / 2, -size, size / 2);
+            } else {
+                circle(0, 0, size);
+            }
             pop();
         }
 
@@ -530,6 +628,7 @@
         // Define actor image variable to house all actor image objects
         let actorImgs = [];
         let config = null;
+        let rotateCursor = null;
         // Load data before the visualiser is started
         function preload() {
 
@@ -545,6 +644,8 @@
                         });
                     });
                 });
+
+            rotateCursor = loadImage('assets/images/cursor_rotate.png');
         }
 
         // ------------INTERACTIONS--------------------------------------------
